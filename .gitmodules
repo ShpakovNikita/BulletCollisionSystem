@@ -1,0 +1,6 @@
+[submodule "External/SDL2"]
+	path = External/SDL2
+	url = git@github.com:ShpakovNikita/SDL2.git
+[submodule "External/imgui"]
+	path = External/imgui
+	url = https://github.com/ocornut/imgui.git
