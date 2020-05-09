@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 cmake_policy(VERSION 2.8)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Cmake")
 set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/Bin")
 set(TASK_SOURCE_PATH "${CMAKE_SOURCE_DIR}/Source")
 
 set(TARGET_NAME TestTask)
 project(${TARGET_NAME})
+
+include_directories("External")
+include_directories("External/imgui")
 
 file(GLOB IMGUI_SOURCE_FILES "${CMAKE_SOURCE_DIR}/External/imgui/*.cpp")
 
@@ -48,13 +52,25 @@ endif()
 file(GLOB_RECURSE SOURCE_FILES "${TASK_SOURCE_PATH}/*.cpp")
 file(GLOB_RECURSE HEADER_FILES "${TASK_SOURCE_PATH}/*.hpp")
 
+add_executable(${TARGET_NAME} ${SOURCE_FILES} ${HEADER_FILES} ${IMGUI_SOURCE_FILES})
+source_group(TREE ${TASK_SOURCE_PATH} FILES ${SOURCE_FILES} ${HEADER_FILES})
+target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})
+
 target_include_directories(${TARGET_NAME}
-    External
-    External/imgui
+    PRIVATE
+    External/
+    External/imgui/
 )
 
 target_compile_definitions(${TARGET_NAME}
     PRIVATE NOMINMAX
 )
 
-add_executable(${TARGET_NAME} ${SOURCE_FILES} ${HEADER_FILES} ${IMGUI_SOURCE_FILES})
+if (MSVC)
+    file(GLOB_RECURSE DLLS "${TASK_LIBS_PATH}/*.dll")
+    message(${DLLS})
+    add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${DLLS}
+            $<TARGET_FILE_DIR:${TARGET_NAME}>)
+endif()

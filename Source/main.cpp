@@ -9,7 +9,7 @@ and may not be redistributed without written permission.*/
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-int main( int argc, char* args[] )
+int main([[ maybe_unused ]] int argc, [[ maybe_unused ]] char** args )
 {
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;
@@ -41,8 +41,8 @@ int main( int argc, char* args[] )
 			//Update the surface
 			SDL_UpdateWindowSurface( window );
 
-			//Wait two seconds
-			SDL_Delay( 2000 );
+			//Wait 10 seconds
+			SDL_Delay( 10000 );
 		}
 	}
 
