@@ -81,7 +81,8 @@ target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})
 
 target_include_directories(${TARGET_NAME}
     PRIVATE
-    ${TASK_SOURCE_PATH}
+    ${TASK_SOURCE_PATH}/Engine
+    ${TASK_SOURCE_PATH}/Client
     External/gl3w/
     External/SDL2/
     External/imgui/

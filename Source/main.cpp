@@ -1,12 +1,11 @@
-#include "Core/Application.hpp"
-
 #include <stdlib.h>
 #include <stdexcept>
 #include <iostream>
+#include "ApplicationImpl.hpp"
 
 int main(int, char**)
 {
-    Application app;
+    ApplicationImpl app;
 
     try
     {
