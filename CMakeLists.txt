@@ -1,16 +1,32 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 cmake_policy(VERSION 2.8)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Cmake")
-set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/Bin")
-set(TASK_SOURCE_PATH "${CMAKE_SOURCE_DIR}/Source")
 
 set(TARGET_NAME TestTask)
 project(${TARGET_NAME})
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Cmake")
+set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/Bin")
+set(TASK_SOURCE_PATH "${CMAKE_SOURCE_DIR}/Source")
+
 include_directories("External")
 include_directories("External/imgui")
 
-file(GLOB IMGUI_SOURCE_FILES "${CMAKE_SOURCE_DIR}/External/imgui/*.cpp")
+file(GLOB IMGUI_HEADER_FILES LIST_DIRECTORIES false
+    "${CMAKE_SOURCE_DIR}/External/imgui/examples/*sdl*.h"
+    "${CMAKE_SOURCE_DIR}/External/imgui/examples/*opengl3*.h"
+)
+file(GLOB IMGUI_SOURCE_FILES LIST_DIRECTORIES false
+    "${CMAKE_SOURCE_DIR}/External/imgui/*.cpp"
+    "${CMAKE_SOURCE_DIR}/External/imgui/examples/*sdl*.cpp"
+    "${CMAKE_SOURCE_DIR}/External/imgui/examples/*opengl3*.cpp"
+)
+
+file(GLOB GL3W_HEADER_FILES LIST_DIRECTORIES false
+    "${CMAKE_SOURCE_DIR}/External/gl3w/GL/*.h"
+)
+file(GLOB GL3W_SOURCE_FILES LIST_DIRECTORIES false
+    "${CMAKE_SOURCE_DIR}/External/gl3w/src/*.c"
+)
 
 if(WIN32)
     set(TASK_LIBS_PATH ${CMAKE_SOURCE_DIR}/Libs/Win32)
@@ -52,13 +68,22 @@ endif()
 file(GLOB_RECURSE SOURCE_FILES "${TASK_SOURCE_PATH}/*.cpp")
 file(GLOB_RECURSE HEADER_FILES "${TASK_SOURCE_PATH}/*.hpp")
 
-add_executable(${TARGET_NAME} ${SOURCE_FILES} ${HEADER_FILES} ${IMGUI_SOURCE_FILES})
+add_executable(${TARGET_NAME} 
+    ${SOURCE_FILES} 
+    ${HEADER_FILES} 
+    ${IMGUI_SOURCE_FILES}
+    ${IMGUI_HEADER_FILES}
+    ${GL3W_HEADER_FILES}
+    ${GL3W_SOURCE_FILES}
+ )
 source_group(TREE ${TASK_SOURCE_PATH} FILES ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})
 
 target_include_directories(${TARGET_NAME}
     PRIVATE
-    External/
+    ${TASK_SOURCE_PATH}
+    External/gl3w/
+    External/SDL2/
     External/imgui/
 )
 
