@@ -1,7 +1,8 @@
 #pragma once
 
-struct SDL_Renderer;
 struct SDL_Window;
+class Renderer;
+class Imgui;
 
 class Application
 {
@@ -13,5 +14,10 @@ protected:
     virtual void Render() = 0;
 
     SDL_Window* window = nullptr;
-    SDL_Renderer* renderer = nullptr;
+    Renderer* renderer = nullptr;
+    Imgui* imgui = nullptr;
+
+private:
+    void Init();
+    void Cleanup();
 };
