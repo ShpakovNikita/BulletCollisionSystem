@@ -1,4 +1,5 @@
 #pragma once
+#include "SDL_events.h"
 
 class Renderer;
 struct SDL_Window;
@@ -10,6 +11,7 @@ private:
     void Cleanup();
     void EndFrame();
     void StartFrame();
+    void InputEvent(const SDL_Event& event);
 
     SDL_Window* window = nullptr;
 

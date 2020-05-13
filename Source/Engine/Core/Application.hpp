@@ -14,7 +14,6 @@ public:
 
 protected:
     virtual void Tick() = 0;
-    virtual void Render() = 0;
     virtual void InputEvent(const SDL_Event& event) = 0;
     virtual std::string GetAssetsDir() = 0;
 

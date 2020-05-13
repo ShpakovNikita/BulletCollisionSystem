@@ -7,18 +7,18 @@ void Imgui::Init(Renderer* renderer, SDL_Window* aWindow)
 {
     window = aWindow;
 
-    // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    //ImGuiIO& io = ImGui::GetIO();
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     ImGui::StyleColorsDark();
 
-    // Setup Platform/Renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(window, renderer->GetApiContext());
     ImGui_ImplOpenGL3_Init(renderer->GetApiVersion().c_str());
+}
+
+void Imgui::InputEvent(const SDL_Event& event)
+{
+    ImGui_ImplSDL2_ProcessEvent(&event);
 }
 
 void Imgui::Cleanup()

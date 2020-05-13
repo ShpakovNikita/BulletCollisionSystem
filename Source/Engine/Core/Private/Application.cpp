@@ -24,12 +24,11 @@ void Application::Run()
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            ImGui_ImplSDL2_ProcessEvent(&event);
+            imgui->InputEvent(event);
             InputEvent(event);
         }
 
         Tick();
-        Render();
 
         renderer->DrawBatches();
 

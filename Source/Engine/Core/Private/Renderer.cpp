@@ -6,12 +6,35 @@
 #include "Utils/File.hpp"
 #include <future>
 #include <thread>
+#include "Math/Vector2.hpp"
 
-std::mutex g_display_mutex;
-
-void Renderer::DrawLine()
+void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint)
 {
+    BatchInfo batchInfo;
+    batchInfo.drawType = GL_LINES;
+    batchInfo.indices = { 0, 1 };
+    batchInfo.vertices = { { startPoint.x, startPoint.y, 0.0f }, {endPoint.x, endPoint.y, 0.0f} };
 
+    glGenVertexArrays(1, &batchInfo.VAO);
+    glBindVertexArray(batchInfo.VAO);
+
+    glGenBuffers(1, &batchInfo.VBO);
+    glGenBuffers(1, &batchInfo.EBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, batchInfo.VBO);
+    glBufferData(GL_ARRAY_BUFFER, batchInfo.vertices.size() * sizeof(Vector3), batchInfo.vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batchInfo.EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, batchInfo.indices.size() * sizeof(uint32_t), batchInfo.indices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(0);
+
+    batches.push_back(std::move(batchInfo));
 }
 
 void Renderer::Init(SDL_Window* aWindow)
@@ -19,8 +42,8 @@ void Renderer::Init(SDL_Window* aWindow)
     window = aWindow;
 
     // TODO: load shaders from Client
-    std::string vertexShaderPath = std::string(ASSETS_DIR) + std::string("Shaders/Triangle.vert");
-    std::string fragmentShaderPath = std::string(ASSETS_DIR) + std::string("Shaders/Triangle.frag");
+    std::string vertexShaderPath = std::string(ASSETS_DIR) + std::string("Shaders/Solid.vert");
+    std::string fragmentShaderPath = std::string(ASSETS_DIR) + std::string("Shaders/Solid.frag");
 
     std::future<std::string> vertexShaderSource = std::async(std::launch::async, &File::ReadFile, std::ref(vertexShaderPath));
     std::future<std::string> fragmentShaderSource = std::async(std::launch::async, &File::ReadFile, std::ref(fragmentShaderPath));
@@ -54,9 +77,12 @@ void Renderer::Init(SDL_Window* aWindow)
 
 void Renderer::Cleanup()
 {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    for (const BatchInfo& batchInfo : batches)
+    {
+        glDeleteVertexArrays(1, &batchInfo.VAO);
+        glDeleteBuffers(1, &batchInfo.VBO);
+        glDeleteBuffers(1, &batchInfo.EBO);
+    }
 
     SDL_GL_DeleteContext(apiContext);
 
@@ -83,43 +109,19 @@ void Renderer::StartFrame()
 void Renderer::DrawBatches()
 {
     glUseProgram(shaderProgramHandle);
-    glBindVertexArray(VAO);
 
-    glDrawElements(GL_LINE_STRIP, 8, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    // No queue sorting and draw calls optimization provided here, because this is a simple renderer
+    for (const BatchInfo& batchInfo : batches)
+    {
+        glBindVertexArray(batchInfo.VAO);
+        glDrawElements(batchInfo.drawType, static_cast<GLsizei>(batchInfo.indices.size()), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
 }
 
 void Renderer::OpengGlPrepareTestData()
 {
-    GLfloat vertices[] = {
-          0.5f,  0.5f, 0.0f,  // Top Right
-          0.5f, -0.5f, 0.0f,  // Bottom Right
-         -0.5f, -0.5f, 0.0f,  // Bottom Left
-         -0.5f,  0.5f, 0.0f,   // Top Left 
-    };
-    GLuint indices[] = {
-        0, 1, 3, 0,
-        1, 2, 3, 1,
-    };
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-   
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glBindVertexArray(0);
 }
 
 GLuint Renderer::CreateShaderProgram(std::future<std::string>& vertexShaderSource, std::future<std::string>& fragmentShaderSource)
@@ -135,10 +137,12 @@ GLuint Renderer::CreateShaderProgram(std::future<std::string>& vertexShaderSourc
     GLint success;
     GLchar infoLog[512];
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         throw std::runtime_error("Shader linking failed! " + std::string(infoLog));
     }
+
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
