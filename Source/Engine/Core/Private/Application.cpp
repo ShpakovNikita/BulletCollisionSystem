@@ -16,42 +16,33 @@ void Application::Run()
 {
     Init();
 
-    ImGuiIO& io = ImGui::GetIO();
-    ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    bool done = false;
-    while (!done)
+    while (!exit)
     {
+        renderer->StartFrame();
+        imgui->StartFrame();
+
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT)
-                done = true;
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
-                done = true;
+            InputEvent(event);
         }
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame(window);
-        ImGui::NewFrame();
-
         Tick();
-
-        // Rendering
-        ImGui::Render();
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-
         Render();
 
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(window);
+        renderer->DrawBatches();
+
+        imgui->EndFrame();
+        renderer->EndFrame();
     }
 
     Cleanup();
+}
+
+void Application::QuitApplication()
+{
+    exit = true;
 }
 
 void Application::Init()

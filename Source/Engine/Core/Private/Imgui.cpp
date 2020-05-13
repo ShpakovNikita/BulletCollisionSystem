@@ -3,8 +3,10 @@
 #include "examples/imgui_impl_sdl.h"
 #include "Core/Renderer.hpp"
 
-void Imgui::Init(Renderer* renderer, SDL_Window* window)
+void Imgui::Init(Renderer* renderer, SDL_Window* aWindow)
 {
+    window = aWindow;
+
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -24,4 +26,19 @@ void Imgui::Cleanup()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
+
+    window = nullptr;
+}
+
+void Imgui::EndFrame()
+{
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void Imgui::StartFrame()
+{
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame(window);
+    ImGui::NewFrame();
 }
