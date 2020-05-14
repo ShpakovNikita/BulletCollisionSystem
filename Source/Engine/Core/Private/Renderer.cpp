@@ -11,8 +11,8 @@
 void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint)
 {
     BatchInfo batchInfo;
+    batchInfo.persistent = false;
     batchInfo.drawType = GL_LINES;
-    batchInfo.indices = { 0, 1 };
     batchInfo.vertices = { { startPoint.x, startPoint.y, 0.0f }, {endPoint.x, endPoint.y, 0.0f} };
 
     // Sure it is better to use one VAO for all the lines, but it isn't the purpose of this test task
@@ -37,6 +37,7 @@ void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint)
 void Renderer::DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount /*= 8*/)
 {
     BatchInfo batchInfo;
+    batchInfo.persistent = false;
     batchInfo.drawType = GL_TRIANGLE_FAN;
 
     batchInfo.vertices.reserve(segmentsCount + 2);

@@ -22,7 +22,6 @@ private:
     {
         uint32_t drawType;
         std::vector<Vector3> vertices;
-        std::vector<uint32_t> indices;
 
         uint32_t VAO = 0, VBO = 0;
         bool persistent = false;
