@@ -15,17 +15,52 @@ void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint)
     batchInfo.indices = { 0, 1 };
     batchInfo.vertices = { { startPoint.x, startPoint.y, 0.0f }, {endPoint.x, endPoint.y, 0.0f} };
 
+    // Sure it is better to use one VAO for all the lines, but it isn't the purpose of this test task
     glGenVertexArrays(1, &batchInfo.VAO);
     glBindVertexArray(batchInfo.VAO);
 
     glGenBuffers(1, &batchInfo.VBO);
-    glGenBuffers(1, &batchInfo.EBO);
 
     glBindBuffer(GL_ARRAY_BUFFER, batchInfo.VBO);
     glBufferData(GL_ARRAY_BUFFER, batchInfo.vertices.size() * sizeof(Vector3), batchInfo.vertices.data(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batchInfo.EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, batchInfo.indices.size() * sizeof(uint32_t), batchInfo.indices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(0);
+
+    batches.push_back(std::move(batchInfo));
+}
+
+void Renderer::DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount /*= 8*/)
+{
+    BatchInfo batchInfo;
+    batchInfo.drawType = GL_TRIANGLE_FAN;
+
+    batchInfo.vertices.reserve(segmentsCount + 2);
+
+    for (uint32_t i = 0; i < segmentsCount; ++i)
+    {
+        const float alpha = 2.0f * static_cast<float>(M_PI) * i / segmentsCount;
+        Vector3 fanVertexPosition = { 
+            position.x + radius * std::cosf(alpha),
+            position.y + radius * std::sinf(alpha),
+            0.0f };
+
+        batchInfo.vertices.push_back(std::move(fanVertexPosition));
+    }
+
+
+    // Sure it is better to use one VAO for all the points, but it isn't the purpose of this test task
+    glGenVertexArrays(1, &batchInfo.VAO);
+    glBindVertexArray(batchInfo.VAO);
+
+    glGenBuffers(1, &batchInfo.VBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, batchInfo.VBO);
+    glBufferData(GL_ARRAY_BUFFER, batchInfo.vertices.size() * sizeof(Vector3), batchInfo.vertices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
@@ -41,9 +76,8 @@ void Renderer::Init(SDL_Window* aWindow)
 {
     window = aWindow;
 
-    // TODO: load shaders from Client
-    std::string vertexShaderPath = std::string(ASSETS_DIR) + std::string("Shaders/Solid.vert");
-    std::string fragmentShaderPath = std::string(ASSETS_DIR) + std::string("Shaders/Solid.frag");
+    std::string vertexShaderPath = std::string(ENGINE_SHADERS_DIR) + std::string("Solid.vert");
+    std::string fragmentShaderPath = std::string(ENGINE_SHADERS_DIR) + std::string("Solid.frag");
 
     std::future<std::string> vertexShaderSource = std::async(std::launch::async, &File::ReadFile, std::ref(vertexShaderPath));
     std::future<std::string> fragmentShaderSource = std::async(std::launch::async, &File::ReadFile, std::ref(fragmentShaderPath));
@@ -71,18 +105,12 @@ void Renderer::Init(SDL_Window* aWindow)
         throw std::runtime_error("Failed to initialize OpenGL loader!");
     }
 
-    shaderProgramHandle = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
-    OpengGlPrepareTestData();
+    simpleShaderProgramHandle = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
 }
 
 void Renderer::Cleanup()
 {
-    for (const BatchInfo& batchInfo : batches)
-    {
-        glDeleteVertexArrays(1, &batchInfo.VAO);
-        glDeleteBuffers(1, &batchInfo.VBO);
-        glDeleteBuffers(1, &batchInfo.EBO);
-    }
+    CleanupBatches(true);
 
     SDL_GL_DeleteContext(apiContext);
 
@@ -92,6 +120,8 @@ void Renderer::Cleanup()
 void Renderer::EndFrame()
 {
     SDL_GL_SwapWindow(window);
+
+    CleanupBatches(false);
 }
 
 void Renderer::StartFrame()
@@ -108,20 +138,33 @@ void Renderer::StartFrame()
 
 void Renderer::DrawBatches()
 {
-    glUseProgram(shaderProgramHandle);
+    glUseProgram(simpleShaderProgramHandle);
 
-    // No queue sorting and draw calls optimization provided here, because this is a simple renderer
+    // No queue sorting and draw calls optimization provided here, because this is a sample renderer
     for (const BatchInfo& batchInfo : batches)
     {
         glBindVertexArray(batchInfo.VAO);
-        glDrawElements(batchInfo.drawType, static_cast<GLsizei>(batchInfo.indices.size()), GL_UNSIGNED_INT, 0);
+        glDrawArrays(batchInfo.drawType, 0, static_cast<GLsizei>(batchInfo.vertices.size()));
         glBindVertexArray(0);
     }
 }
 
-void Renderer::OpengGlPrepareTestData()
+void Renderer::CleanupBatches(bool cleanupPersistentBatches)
 {
+    auto removeBatchConditionsCheck = [cleanupPersistentBatches](const BatchInfo& batchInfo) {
+        return !batchInfo.persistent || cleanupPersistentBatches;
+    };
 
+    for (const BatchInfo& batchInfo : batches)
+    {
+        if (removeBatchConditionsCheck(batchInfo))
+        {
+            glDeleteVertexArrays(1, &batchInfo.VAO);
+            glDeleteBuffers(1, &batchInfo.VBO);
+        }
+    }
+
+    batches.erase(std::remove_if(batches.begin(), batches.end(), removeBatchConditionsCheck), batches.end());
 }
 
 GLuint Renderer::CreateShaderProgram(std::future<std::string>& vertexShaderSource, std::future<std::string>& fragmentShaderSource)

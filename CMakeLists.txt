@@ -69,6 +69,7 @@ file(GLOB_RECURSE SOURCE_FILES "${TASK_SOURCE_PATH}/*.cpp")
 file(GLOB_RECURSE HEADER_FILES "${TASK_SOURCE_PATH}/*.hpp")
 
 add_definitions(-DASSETS_DIR=\"${CMAKE_SOURCE_DIR}/Assets/\")
+add_definitions(-DENGINE_SHADERS_DIR=\"${CMAKE_SOURCE_DIR}/Source/Engine/Shaders/\")
 
 add_executable(${TARGET_NAME} 
     ${SOURCE_FILES} 

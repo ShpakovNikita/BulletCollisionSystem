@@ -12,6 +12,7 @@ class Renderer
 {
 public:
     void DrawLine(const Vector2& startPoint, const Vector2& endPoint);
+    void DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount = 8);
 
     inline void* GetApiContext() const { return apiContext; }
     inline const std::string& GetApiVersion() const { return apiVersion; }
@@ -23,7 +24,8 @@ private:
         std::vector<Vector3> vertices;
         std::vector<uint32_t> indices;
 
-        uint32_t VAO = 0, VBO = 0, EBO = 0;
+        uint32_t VAO = 0, VBO = 0;
+        bool persistent = false;
     };
 
     void Init(SDL_Window* window);
@@ -31,8 +33,8 @@ private:
     void EndFrame();
     void StartFrame();
     void DrawBatches();
+    void CleanupBatches(bool cleanupPersistentBatches);
 
-    void OpengGlPrepareTestData();
     uint32_t CreateShaderProgram(std::future<std::string>& vertexShaderSource, std::future<std::string>& fragmentShaderSource);
     uint32_t CompileShader(const std::string& shaderSource, uint32_t shaderType);
 
@@ -40,7 +42,7 @@ private:
     mutable void* apiContext = nullptr;
     std::string apiVersion = {};
 
-    uint32_t shaderProgramHandle = 0;
+    uint32_t simpleShaderProgramHandle = 0;
 
     std::vector<BatchInfo> batches;
 

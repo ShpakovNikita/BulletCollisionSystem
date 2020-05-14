@@ -22,6 +22,8 @@ void ApplicationImpl::Tick()
     {
         renderer->DrawLine(wallStart, wallEnd);
     }
+
+    renderer->DrawPoint({ 0.0f, 0.0f }, 0.02f);
 }
 
 void ApplicationImpl::InputEvent(const SDL_Event& event)
