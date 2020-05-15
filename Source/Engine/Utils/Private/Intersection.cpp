@@ -20,8 +20,9 @@ std::optional<Vector2> Intersection::SegmentSegmentIntersection(
     }
 
     float t = (q - p).Cross(s) / rCrossS;
+    float u = (q - p).Cross(r) / rCrossS;
 
-    if (0.0f <= t && t <= 1.0f)
+    if (0.0f <= t && t <= 1.0f && 0.0f <= u && u <= 1.0f)
     {
         return { p + r * t };
     }
@@ -41,5 +42,10 @@ bool Intersection::BoxBoxIntersection(const AABBox2& bbox1, const AABBox2& bbox2
     }
 
     return true;
+}
+
+bool Intersection::PointBoxIntersection(const Vector2& point, const AABBox2& bbox)
+{
+    return point.x >= bbox.min.x && point.x <= bbox.max.x && point.y >= bbox.min.y && point.y <= bbox.max.y;
 }
 

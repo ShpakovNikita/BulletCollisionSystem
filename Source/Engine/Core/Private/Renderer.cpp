@@ -8,7 +8,7 @@
 #include <thread>
 #include "Math/Vector2.hpp"
 
-void Renderer::DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStrip /*= false*/)
+void Renderer::DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStrip /*= false*/) const
 {
     BatchInfo batchInfo;
     batchInfo.persistent = false;
@@ -25,7 +25,7 @@ void Renderer::DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStri
     batches.push_back(std::move(batchInfo));
 }
 
-void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint)
+void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint) const
 {
     BatchInfo batchInfo;
     batchInfo.persistent = false;
@@ -38,7 +38,7 @@ void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint)
     batches.push_back(std::move(batchInfo));
 }
 
-void Renderer::DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount /*= 8*/)
+void Renderer::DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount /*= 8*/) const
 {
     BatchInfo batchInfo;
     batchInfo.persistent = false;
@@ -141,8 +141,7 @@ void Renderer::StartFrame()
     int width, height;
     SDL_GetWindowSize(window, &width, &height);
     
-    int viewportSize = std::min(width, height);
-    glViewport(0, 0, viewportSize, viewportSize);
+    glViewport(0, 0, width, height);
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     glClear(GL_COLOR_BUFFER_BIT);
 }

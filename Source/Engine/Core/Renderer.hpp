@@ -11,9 +11,9 @@ struct Vector2;
 class Renderer
 {
 public:
-    void DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStrip = false);
-    void DrawLine(const Vector2& startPoint, const Vector2& endPoint);
-    void DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount = 8);
+    void DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStrip = false) const;
+    void DrawLine(const Vector2& startPoint, const Vector2& endPoint) const;
+    void DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount = 8) const;
 
     inline void* GetApiContext() const { return apiContext; }
     inline const std::string& GetApiVersion() const { return apiVersion; }
@@ -46,7 +46,7 @@ private:
 
     uint32_t simpleShaderProgramHandle = 0;
 
-    std::vector<BatchInfo> batches;
+    mutable std::vector<BatchInfo> batches;
 
     friend class Application;
 };

@@ -22,8 +22,10 @@ public:
     void QuitApplication();
 
 protected:
-    virtual void Tick(const std::chrono::microseconds& deltaTime) = 0;
-    virtual void InputEvent(const SDL_Event& event) = 0;
+    virtual void Tick(const std::chrono::microseconds& deltaTime);
+    virtual void InputEvent(const SDL_Event& event);
+    virtual void Init();
+    virtual void Cleanup();
 
     /**
     * Getting run loop execution time, which means our app execution time
@@ -38,9 +40,6 @@ protected:
     Imgui* imgui = nullptr;
 
 private:
-    void Init();
-    void Cleanup();
-
     bool exit = false;
     std::chrono::microseconds currentExecutionTime = {};
     std::chrono::time_point<std::chrono::steady_clock> applicationInitTime = {};

@@ -25,10 +25,16 @@ void Application::Run()
     std::chrono::duration frameDelta = std::chrono::microseconds(0);
     std::chrono::duration frameTimeLimit = std::chrono::microseconds(1000 * 1000 / config.fpsLimit);
 
+    std::chrono::time_point<std::chrono::steady_clock> currentTime = std::chrono::steady_clock::now();
+
     while (!exit)
     {
-        std::chrono::time_point<std::chrono::steady_clock> currentTime = std::chrono::steady_clock::now();
-        currentExecutionTime = std::chrono::duration_cast<std::chrono::microseconds>(currentTime - applicationInitTime);
+        // TODO: add sleep
+        std::chrono::time_point<std::chrono::steady_clock> newCurrentTime = std::chrono::steady_clock::now();
+        frameDelta = std::chrono::duration_cast<std::chrono::microseconds>(newCurrentTime - currentTime);
+        frameDelta = std::clamp(frameDelta, std::chrono::microseconds(0), frameTimeLimit);
+        currentExecutionTime = std::chrono::duration_cast<std::chrono::microseconds>(currentExecutionTime + frameDelta);
+        currentTime = newCurrentTime;
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -46,10 +52,6 @@ void Application::Run()
 
         imgui->EndFrame();
         renderer->EndFrame();
-
-        std::chrono::time_point<std::chrono::steady_clock> frameEndTime = std::chrono::steady_clock::now();
-        frameDelta = std::chrono::duration_cast<std::chrono::microseconds>(frameEndTime - currentTime);
-        frameDelta = std::clamp(frameDelta, std::chrono::microseconds(0), frameTimeLimit);
     }
 
     Cleanup();
@@ -64,6 +66,12 @@ const std::chrono::microseconds& Application::GetApplicationExecutionTime() cons
 {
     return currentExecutionTime;
 }
+
+void Application::Tick(const std::chrono::microseconds&)
+{}
+
+void Application::InputEvent(const SDL_Event&)
+{}
 
 void Application::Init()
 {
@@ -97,4 +105,3 @@ void Application::Cleanup()
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
-
