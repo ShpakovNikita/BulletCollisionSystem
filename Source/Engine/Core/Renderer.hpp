@@ -11,6 +11,7 @@ struct Vector2;
 class Renderer
 {
 public:
+    void DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStrip = false);
     void DrawLine(const Vector2& startPoint, const Vector2& endPoint);
     void DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount = 8);
 
@@ -26,6 +27,8 @@ private:
         uint32_t VAO = 0, VBO = 0;
         bool persistent = false;
     };
+
+    static void BindBuffersForBatch(BatchInfo& batchInfo);
 
     void Init(SDL_Window* window);
     void Cleanup();

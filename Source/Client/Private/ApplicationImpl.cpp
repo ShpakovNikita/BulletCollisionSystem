@@ -5,25 +5,35 @@
 #include "Math\Vector2.hpp"
 #include <vector>
 #include "Core\Renderer.hpp"
+#include <chrono>
+#include <optional>
+#include "Utils\Intersection.hpp"
 
-void ApplicationImpl::Tick()
+void ApplicationImpl::Tick(const std::chrono::microseconds& [[ maybe_unused ]] deltaTime)
 {
+    float currentTimeInSeconds = GetApplicationExecutionTime().count() / (1000.0f * 1000.0f);
+    bulletManager.Update(currentTimeInSeconds);
+
     if (showDemoWindow)
     {
         ImGui::ShowDemoWindow(&showDemoWindow);
     }
 
-    std::vector<std::tuple<Vector2, Vector2>> level = { 
-        { { -0.5f, 0.0f }, { 0.5f, 0.0f } },
-        { { -0.5f, 0.1f }, { 0.5f, 0.1f } },
+    const std::vector<Vector2> level = {
+        { -0.5f, 0.0f }, { 0.5f, 0.0f },
+        { 0.0f, 0.5f }, { 0.0f, -0.5f },
     };
 
-    for (const auto& [wallStart, wallEnd] : level)
     {
-        renderer->DrawLine(wallStart, wallEnd);
+        std::optional<Vector2> intersectionPoint = Intersection::SegmentSegmentIntersection(level[0], level[1], level[2], level[3]);
+
+        if (intersectionPoint)
+        {
+            renderer->DrawPoint(intersectionPoint.value(), 0.02f);
+        }
     }
 
-    renderer->DrawPoint({ 0.0f, 0.0f }, 0.02f);
+    renderer->DrawLines(level);
 }
 
 void ApplicationImpl::InputEvent(const SDL_Event& event)
@@ -38,11 +48,8 @@ void ApplicationImpl::InputEvent(const SDL_Event& event)
     }
 }
 
-std::string ApplicationImpl::GetAssetsDir()
+ApplicationImpl::ApplicationImpl()
+    : Application({ 60 })
 {
-#if defined(ASSETS_DIR)
-    return ASSETS_DIR;
-#else
-    return "./../Assets/";
-#endif
+    
 }

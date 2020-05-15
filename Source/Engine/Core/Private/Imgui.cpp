@@ -10,6 +10,11 @@ void Imgui::Init(Renderer* renderer, SDL_Window* aWindow)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io.KeyMods |= ImGuiKeyModFlags_Ctrl | ImGuiKeyModFlags_Shift | ImGuiKeyModFlags_Alt;
+
     ImGui::StyleColorsDark();
 
     ImGui_ImplSDL2_InitForOpenGL(window, renderer->GetApiContext());
