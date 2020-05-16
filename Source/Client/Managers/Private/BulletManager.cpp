@@ -26,10 +26,12 @@ void BulletManager::Fire(
     [[ maybe_unused ]] float time, 
     [[ maybe_unused ]] float lifeTime)
 {
+    assert(dir != Vector2::kZero && speed != 0.0f && lifeTime != 0.0f);
+
     std::lock_guard lock(mutex);
 
     Bullet bullet = {};
-    bullet.dir = dir;
+    bullet.dir = dir.Normalized();
     bullet.pos = pos;
     bullet.speed = speed;
     bullet.remainingLifeTime = lifeTime;

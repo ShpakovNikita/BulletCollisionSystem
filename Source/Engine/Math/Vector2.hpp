@@ -4,6 +4,9 @@
 
 struct Vector2
 {
+    static const Vector2 kZero;
+    static const Vector2 kUnit;
+
     union { float x, r; };
     union { float y, g; };
 
@@ -64,6 +67,9 @@ struct Vector2
         return *this / Length();
     }
 };
+
+__declspec(selectany) const Vector2 Vector2::kZero = { 0.0f, 0.0f };
+__declspec(selectany) const Vector2 Vector2::kUnit = { 1.0f, 1.0f };
 
 static inline bool operator==(const Vector2& v1, const Vector2& v2)
 {

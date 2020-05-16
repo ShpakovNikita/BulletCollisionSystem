@@ -31,10 +31,14 @@ void GameScene::DrawLevel()
     }
 
     renderer->DrawLines(lines);
-    quadtree.DebugDraw(renderer);
 }
 
 void GameScene::SetRenderer(const Renderer* aRenderer)
 {
     renderer = aRenderer;
+}
+
+void GameScene::DrawCollisionQuadTree()
+{
+    quadtree.DebugDraw(renderer);
 }

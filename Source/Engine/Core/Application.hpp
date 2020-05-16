@@ -38,10 +38,10 @@ protected:
     SDL_Window* window = nullptr;
     Renderer* renderer = nullptr;
     Imgui* imgui = nullptr;
+    ApplicationConfig config;
 
 private:
     bool exit = false;
     std::chrono::microseconds currentExecutionTime = {};
     std::chrono::time_point<std::chrono::steady_clock> applicationInitTime = {};
-    ApplicationConfig config;
 };

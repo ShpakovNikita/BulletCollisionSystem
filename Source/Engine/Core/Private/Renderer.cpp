@@ -141,6 +141,8 @@ void Renderer::StartFrame()
     int width, height;
     SDL_GetWindowSize(window, &width, &height);
     
+    // int viewportSize = std::min(width, height);
+
     glViewport(0, 0, width, height);
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     glClear(GL_COLOR_BUFFER_BIT);

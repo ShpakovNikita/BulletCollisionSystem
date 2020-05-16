@@ -15,6 +15,9 @@ public:
 
     void SetRenderer(const Renderer* renderer);
 
+    void DrawCollisionQuadTree();
+
+    // TODO: move both to private
     std::vector<Line> walls;
     Quadtree<Line> quadtree;
 
