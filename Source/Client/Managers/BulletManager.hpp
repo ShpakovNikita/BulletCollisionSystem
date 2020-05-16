@@ -1,6 +1,7 @@
 #include <mutex>
 #include <vector>
 #include "Math\Vector2.hpp"
+#include "Math\Line.hpp"
 
 class GameScene;
 class Renderer;

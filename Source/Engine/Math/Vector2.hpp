@@ -7,16 +7,6 @@ struct Vector2
     union { float x, r; };
     union { float y, g; };
 
-    inline bool operator==(const Vector2& v)
-    {
-        return x == v.x && y == v.y;
-    }
-
-    inline bool operator!=(const Vector2& v)
-    {
-        return x != v.x || y != v.y;
-    }
-
     inline Vector2 operator-() const
     {
         return { -x, -y };
@@ -74,3 +64,23 @@ struct Vector2
         return *this / Length();
     }
 };
+
+static inline bool operator==(const Vector2& v1, const Vector2& v2)
+{
+    return v1.x == v2.x && v1.y == v2.y;
+}
+
+static inline bool operator!=(const Vector2& v1, const Vector2& v2)
+{
+    return v1.x != v2.x || v1.y != v2.y;
+}
+
+static inline bool operator>=(const Vector2& v1, const Vector2& v2)
+{
+    return v1.x >= v2.x && v1.y >= v2.y;
+}
+
+static inline bool operator<=(const Vector2& v1, const Vector2& v2)
+{
+    return v1.x <= v2.x && v1.y <= v2.y;
+}

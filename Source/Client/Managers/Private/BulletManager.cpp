@@ -59,9 +59,12 @@ void BulletManager::UpdateBulletPositions(float deltaTime)
         Vector2 deltaVelocityVector = bullet.dir * bullet.speed * deltaTime;
         Vector2 newBulletPos = bullet.pos + deltaVelocityVector;
 
-        // TODO: optimize
-        for (const Line& wall : gameScene.walls)
+        std::vector<const Line*> bboxCollidedWalls = gameScene.quadtree.GetCollidedObjects({ bullet.pos, newBulletPos });
+
+        for (const Line* wallPtr : bboxCollidedWalls)
         {
+            const Line& wall = *wallPtr;
+
             const Vector2& wallStart = std::get<0>(wall);
             const Vector2& wallEnd = std::get<1>(wall);
             std::optional<Vector2> collidedPoint = Intersection::SegmentSegmentIntersection(

@@ -32,11 +32,8 @@ std::optional<Vector2> Intersection::SegmentSegmentIntersection(
 
 bool Intersection::BoxBoxIntersection(const AABBox2& bbox1, const AABBox2& bbox2)
 {
-    if (bbox1.max.x < bbox2.min.x || bbox1.min.x > bbox2.max.x)
-    {
-        return false;
-    }
-    if (bbox1.max.y < bbox2.min.y || bbox1.min.y > bbox2.max.y)
+    if (bbox1.max.x < bbox2.min.x || bbox1.min.x > bbox2.max.x
+        || bbox1.max.y < bbox2.min.y || bbox1.min.y > bbox2.max.y)
     {
         return false;
     }

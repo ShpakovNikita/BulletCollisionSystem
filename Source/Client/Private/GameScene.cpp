@@ -2,6 +2,16 @@
 #include "Core\Renderer.hpp"
 #include <utility>
 #include <assert.h>
+#include "Math\MathHelpers.hpp"
+
+GameScene::GameScene()
+    : quadtree(AABBox2{ {-1.0f, -1.0f}, {1.0f, 1.0f} }, [](const Line& line)
+{
+    return MathHelpers::CreateBBox(std::get<0>(line), std::get<1>(line));
+})
+{
+
+}
 
 void GameScene::Update(float)
 {
@@ -21,6 +31,7 @@ void GameScene::DrawLevel()
     }
 
     renderer->DrawLines(lines);
+    quadtree.DebugDraw(renderer);
 }
 
 void GameScene::SetRenderer(const Renderer* aRenderer)

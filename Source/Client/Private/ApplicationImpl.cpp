@@ -9,6 +9,7 @@
 #include <optional>
 #include "Utils\Intersection.hpp"
 #include "SDL_mouse.h"
+#include "Math\DataStructures\Quadtree.hpp"
 
 void ApplicationImpl::Tick(const std::chrono::microseconds& deltaTime)
 {
@@ -116,8 +117,23 @@ void ApplicationImpl::Init()
         { { 0.9f, 0.9f }, { 0.9f, -0.9f } },
         { { 0.9f, -0.9f }, { -0.9f, -0.9f } },
         { { -0.9f, -0.9f }, { -0.9f, 0.9f } },
+        { { 0.8f, 0.9f }, { 0.9f, 0.8f } },
+        { { 0.8f, 0.9f }, { 0.9f, 0.8f } },
+        { { 0.8f, 0.9f }, { 0.9f, 0.8f } },
+        { { 0.8f, 0.88f }, { 0.88f, 0.8f } },
+        { { 0.8f, 0.85f }, { 0.85f, 0.8f } },
+        { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
+        { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
+        { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
+        { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
     };
 
+    for (const Line& wall : gameScene.walls)
+    {
+        gameScene.quadtree.Insert(wall);
+    }
+
     gameScene.SetRenderer(renderer);
+
     bulletManager.SetRenderer(renderer);
 }

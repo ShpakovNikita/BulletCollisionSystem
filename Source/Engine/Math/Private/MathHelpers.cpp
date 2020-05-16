@@ -1,5 +1,7 @@
 #include "Math\MathHelpers.hpp"
 #include "Math\Vector2.hpp"
+#include <algorithm>
+#include "Math\AABBox2.hpp"
 
 Vector2 MathHelpers::Reflect(const Vector2& ray, const Vector2& normal)
 {
@@ -27,4 +29,12 @@ MathHelpers::eOrientation MathHelpers::GetOrientation(const Vector2& v1, const V
 bool MathHelpers::Equals(float a, float b, float epsilon /*= kFloatEpsilon*/)
 {
     return std::abs(a - b) < epsilon;
+}
+
+AABBox2 MathHelpers::CreateBBox(const Vector2& v1, const Vector2& v2)
+{
+    AABBox2 bbox;
+    bbox.min = { std::min(v1.x, v2.x), std::min(v1.y, v2.y) };
+    bbox.max = { std::max(v1.x, v2.x), std::max(v1.y, v2.y) };
+    return bbox;
 }
