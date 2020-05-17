@@ -68,7 +68,7 @@ void ApplicationImpl::Init()
     gameScene = std::make_unique<GameScene>(appContext);
     bulletManager = std::make_unique<BulletManager>(*gameScene, appContext);
 
-    gameScene->walls = {
+    std::vector<Line> walls = {
         { { -0.9f, 0.9f }, { 0.9f, 0.9f } },
         { { 0.9f, 0.9f }, { 0.9f, -0.9f } },
         { { 0.9f, -0.9f }, { -0.9f, -0.9f } },
@@ -84,9 +84,9 @@ void ApplicationImpl::Init()
         { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
     };
 
-    for (const Line& wall : gameScene->walls)
+    for (const Line& wall : walls)
     {
-        gameScene->quadtree.Insert(wall);
+        gameScene->AddWall(wall);
     }
 
     wallCreationController = std::make_unique<WallCreationController>(*gameScene, appContext);
@@ -111,6 +111,20 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
         const ImVec4 textColor = { 1.0f, 1.0f, 0.0f, 1.0f };
         char label[256];
         snprintf(label, sizeof(label), "Current global time: %f sec", currentTimeInSeconds);
+        ImGui::TextColored(textColor, label);
+    }
+
+    {
+        const ImVec4 textColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+        char label[256];
+        snprintf(label, sizeof(label), "Current number of bullets in queue: %zu ", bulletManager->GetBulletsInQueueCount());
+        ImGui::TextColored(textColor, label);
+    }
+
+    {
+        const ImVec4 textColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+        char label[256];
+        snprintf(label, sizeof(label), "Current number of bullets on scene: %zu ", bulletManager->GetBulletsOnSceneCount());
         ImGui::TextColored(textColor, label);
     }
 

@@ -15,12 +15,15 @@ public:
 
     void DrawCollisionQuadTree();
 
-    // TODO: move both to private
-    std::vector<Line> walls;
-    Quadtree<Line> quadtree;
+    void AddWall(const Line& wall);
+    void RemoveWall(const Line& wall);
+    std::vector<Line> GetBBoxCollidedWalls(const Line& wall);
 
 private:
     void DrawLevel();
+
+    std::vector<Line> walls;
+    Quadtree<Line> quadtree;
 
     const AppContext& appContext;
 };

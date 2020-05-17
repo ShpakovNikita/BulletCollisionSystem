@@ -57,7 +57,7 @@ void Application::Run()
         appContext.imgui->EndFrame();
         appContext.renderer->EndFrame();
 
-        // Because of force enabled VSync we dont have to sleep here
+        // Because of force enabled VSync we don't have to sleep here
     }
 
     Cleanup();

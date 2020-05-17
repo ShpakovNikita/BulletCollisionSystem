@@ -47,6 +47,17 @@ void BulletManager::Fire(
     firedBullets.push_back(std::move(bullet));
 }
 
+size_t BulletManager::GetBulletsOnSceneCount() const
+{
+    return firedBullets.size();
+}
+
+size_t BulletManager::GetBulletsInQueueCount() const
+{
+    std::lock_guard lock(mutex);
+    return bulletsQueue.size();
+}
+
 void BulletManager::DrawBullets()
 {
     for (const Bullet& bullet : firedBullets)
@@ -62,12 +73,10 @@ void BulletManager::UpdateBulletPositions(float deltaTime)
         Vector2 deltaVelocityVector = bullet.dir * bullet.speed * deltaTime;
         Vector2 newBulletPos = bullet.pos + deltaVelocityVector;
 
-        std::vector<const Line*> bboxCollidedWalls = gameScene.quadtree.GetCollidedObjects({ bullet.pos, newBulletPos });
+        std::vector<Line> bboxCollidedWalls = gameScene.GetBBoxCollidedWalls({ bullet.pos, newBulletPos });
 
-        for (const Line* wallPtr : bboxCollidedWalls)
+        for (const Line& wall : bboxCollidedWalls)
         {
-            const Line& wall = *wallPtr;
-
             const Vector2& wallStart = std::get<0>(wall);
             const Vector2& wallEnd = std::get<1>(wall);
             std::optional<Vector2> collidedPoint = Intersection::SegmentSegmentIntersection(
@@ -85,6 +94,9 @@ void BulletManager::UpdateBulletPositions(float deltaTime)
                 Vector2 newDirection = MathHelpers::Reflect(-bullet.dir, wallNormal);
                 bullet.dir = newDirection.Normalized();
                 newBulletPos = collidedPoint.value() + newDirection * bullet.speed * deltaTime;
+
+                gameScene.RemoveWall({ wallStart, wallEnd });
+
                 break;
             }
         }

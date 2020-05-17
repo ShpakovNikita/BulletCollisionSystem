@@ -46,8 +46,7 @@ void WallCreationController::InputEvent(const SDL_Event& event)
 
                 if (startPoint != endPoint)
                 {
-                    gameScene.walls.push_back({ startPoint, endPoint });
-                    gameScene.quadtree.Insert(gameScene.walls.back());
+                    gameScene.AddWall({ startPoint, endPoint });
                 }
 
                 wallCreateInfo = std::nullopt;

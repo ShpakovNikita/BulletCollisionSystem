@@ -15,6 +15,9 @@ public:
     void Update(float time);
     void Fire(const Vector2& pos, const Vector2& dir, float speed, float time, float lifeTime);
 
+    size_t GetBulletsOnSceneCount() const;
+    size_t GetBulletsInQueueCount() const;
+
 private:
     struct Bullet
     {
@@ -28,9 +31,10 @@ private:
     void UpdateBulletPositions(float time);
     void ClipOutOfBordersBullets();
 
-    std::mutex mutex;
+    mutable std::mutex mutex;
 
     std::vector<Bullet> firedBullets;
+    std::vector<Bullet> bulletsQueue;
     GameScene& gameScene;
 
     const AppContext& appContext;

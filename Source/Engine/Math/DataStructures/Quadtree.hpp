@@ -13,21 +13,23 @@ public:
 
     void Clear();
     void Insert(const T& object);
-    std::vector<const T*> GetCollidedObjects(const T& objectToCollide) const;
+    void Remove(const T& object);
+    std::vector<T> GetCollidedObjects(const T& objectToCollide) const;
 
     void DebugDraw(const Renderer* renderer);
 
 private:
     struct ObjectBBoxCollision
     {
-        const T* object;
+        T object;
         AABBox2 bbox;
     };
 
     struct Node
     {
-        Node(const AABBox2& aBounds)
-            : bounds(aBounds)
+        Node(Node* aParent, const AABBox2& aBounds)
+            : parent(aParent)
+            , bounds(aBounds)
         {
             childs.fill(nullptr);
         }
@@ -36,10 +38,13 @@ private:
         void Split();
         int32_t GetIndex(const AABBox2& objectBBox) const;
         void Insert(ObjectBBoxCollision&& collisionObject);
-        void GetCollidedObjects(std::vector<const T*> &collidedObjects, const AABBox2& collisionBBox) const;
+        void Remove(ObjectBBoxCollision&& collisionObject);
+        void DiscardEmptyNodes();
+        void GetCollidedObjects(std::vector<T> &collidedObjects, const AABBox2& collisionBBox) const;
 
         void DebugDraw(const Renderer* renderer);
 
+        Node* parent = nullptr;
         AABBox2 bounds;
         std::vector<ObjectBBoxCollision> objects;
         std::array<Node*, 4> childs;
@@ -52,7 +57,7 @@ private:
 };
 
 template<typename T>
-void Quadtree<T>::Node::GetCollidedObjects(std::vector<const T*> &collidedObjects, const AABBox2& collisionBBox) const
+void Quadtree<T>::Node::GetCollidedObjects(std::vector<T>& collidedObjects, const AABBox2& collisionBBox) const
 {
     if (childs[0] != nullptr)
     {
@@ -70,9 +75,9 @@ void Quadtree<T>::Node::GetCollidedObjects(std::vector<const T*> &collidedObject
 }
 
 template<typename T>
-std::vector<const T*> Quadtree<T>::GetCollidedObjects(const T& objectToCollide) const
+std::vector<T> Quadtree<T>::GetCollidedObjects(const T& objectToCollide) const
 {
-    std::vector<const T*> collidedObjects;
+    std::vector<T> collidedObjects;
     rootNode->GetCollidedObjects(collidedObjects, bboxCreationFunc(objectToCollide));
 
     return collidedObjects;
@@ -81,8 +86,15 @@ std::vector<const T*> Quadtree<T>::GetCollidedObjects(const T& objectToCollide) 
 template<typename T>
 void Quadtree<T>::Insert(const T& object)
 {
-    ObjectBBoxCollision collisionObject = { &object, bboxCreationFunc(object) };
+    ObjectBBoxCollision collisionObject = { object, bboxCreationFunc(object) };
     rootNode->Insert(std::move(collisionObject));
+}
+
+template<typename T>
+void Quadtree<T>::Remove(const T& object)
+{
+    ObjectBBoxCollision collisionObject = { object, bboxCreationFunc(object) };
+    rootNode->Remove(std::move(collisionObject));
 }
 
 template<typename T>
@@ -105,6 +117,57 @@ int32_t Quadtree<T>::Node::GetIndex(const AABBox2& objectBBox) const
     }
 
     return -1;
+}
+
+template<typename T>
+void Quadtree<T>::Node::Remove(ObjectBBoxCollision&& collisionObject)
+{
+    if (childs[0] != nullptr)
+    {
+        int32_t childIndex = GetIndex(collisionObject.bbox);
+
+        if (childIndex != -1)
+        {
+            childs[childIndex]->Remove(std::move(collisionObject));
+
+            return;
+        }
+    }
+
+    static const auto collisionObjectsComparator = [&collisionObject](const Quadtree<T>::ObjectBBoxCollision& obj)
+    {
+        return collisionObject.object == obj.object;
+    };
+
+    objects.erase(std::find_if(objects.begin(), objects.end(), collisionObjectsComparator));
+
+    DiscardEmptyNodes();
+}
+
+template<typename T>
+void Quadtree<T>::Node::DiscardEmptyNodes()
+{
+    if (!objects.empty())
+    {
+        return;
+    }
+
+    if (childs[0] != nullptr)
+    {
+        for (const Node* node : childs)
+        {
+            if (node->childs[0] != nullptr || !node->objects.empty())
+            {
+                return;
+            }
+        }
+    }
+
+    Clear();
+    if (parent != nullptr)
+    {
+        parent->DiscardEmptyNodes();
+    }
 }
 
 template<typename T>
@@ -206,17 +269,17 @@ void Quadtree<T>::Node::Split()
     Vector2 thirdQuarterMin = bounds.min;
     Vector2 fourthQuarterMin = bounds.min + Vector2{ bboxHalfSize.x, 0.0f };
 
-    childs[0] = new Node({ firstQuarterMin, firstQuarterMin + bboxHalfSize});
-    childs[1] = new Node({ secondQuarterMin, secondQuarterMin + bboxHalfSize});
-    childs[2] = new Node({ thirdQuarterMin, thirdQuarterMin + bboxHalfSize});
-    childs[3] = new Node({ fourthQuarterMin, fourthQuarterMin + bboxHalfSize});
+    childs[0] = new Node(this, { firstQuarterMin, firstQuarterMin + bboxHalfSize});
+    childs[1] = new Node(this, { secondQuarterMin, secondQuarterMin + bboxHalfSize});
+    childs[2] = new Node(this, { thirdQuarterMin, thirdQuarterMin + bboxHalfSize});
+    childs[3] = new Node(this, { fourthQuarterMin, fourthQuarterMin + bboxHalfSize});
 }
 
 template<typename T>
 Quadtree<T>::Quadtree(const AABBox2& bounds, const std::function<AABBox2(const T&)>& aBBoxCreationFunc)
     : bboxCreationFunc(aBBoxCreationFunc)
 {
-    rootNode = new Node(bounds);
+    rootNode = new Node(nullptr, bounds);
 }
 
 template<typename T>
