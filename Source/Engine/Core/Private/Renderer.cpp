@@ -7,6 +7,11 @@
 #include <future>
 #include <thread>
 #include "Math/Vector2.hpp"
+#include "Core/AppContext.hpp"
+
+Renderer::Renderer(const AppContext& aAppContext)
+    : appContext(aAppContext)
+{}
 
 void Renderer::DrawLines(const std::vector<Vector2>& linePoints, const Vector3& color /*= Vector3::kGreen*/, bool drawAsStrip /*= false*/) const
 {
@@ -100,10 +105,8 @@ void Renderer::BindBuffersForBatch(BatchInfo& batchInfo)
     glBindVertexArray(0);
 }
 
-void Renderer::Init(SDL_Window* aWindow)
+void Renderer::Init()
 {
-    window = aWindow;
-
     std::string vertexShaderPath = std::string(ENGINE_SHADERS_DIR) + std::string("Solid.vert");
     std::string fragmentShaderPath = std::string(ENGINE_SHADERS_DIR) + std::string("Solid.frag");
 
@@ -123,8 +126,8 @@ void Renderer::Init(SDL_Window* aWindow)
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-    apiContext = SDL_GL_CreateContext(window);
-    SDL_GL_MakeCurrent(window, apiContext);
+    apiContext = SDL_GL_CreateContext(appContext.window);
+    SDL_GL_MakeCurrent(appContext.window, apiContext);
     SDL_GL_SetSwapInterval(1); // Enable vsync
 
     if (gl3wInit() != GL3W_OK)
@@ -140,13 +143,11 @@ void Renderer::Cleanup()
     CleanupBatches(true);
 
     SDL_GL_DeleteContext(apiContext);
-
-    window = nullptr;
 }
 
 void Renderer::EndFrame()
 {
-    SDL_GL_SwapWindow(window);
+    SDL_GL_SwapWindow(appContext.window);
 
     CleanupBatches(false);
 }
@@ -155,12 +156,7 @@ void Renderer::StartFrame()
 {
     const float clearColor[] = { 0.45f, 0.55f, 0.60f, 1.00f };
 
-    int width, height;
-    SDL_GetWindowSize(window, &width, &height);
-    
-    // int viewportSize = std::min(width, height);
-
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, appContext.config.viewportWidth, appContext.config.viewportHeight);
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     glClear(GL_COLOR_BUFFER_BIT);
 }

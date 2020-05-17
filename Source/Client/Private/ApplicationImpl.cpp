@@ -69,19 +69,10 @@ void ApplicationImpl::Init()
     bulletManager = std::make_unique<BulletManager>(*gameScene, appContext);
 
     std::vector<Line> walls = {
-        { { -0.9f, 0.9f }, { 0.9f, 0.9f } },
-        { { 0.9f, 0.9f }, { 0.9f, -0.9f } },
-        { { 0.9f, -0.9f }, { -0.9f, -0.9f } },
-        { { -0.9f, -0.9f }, { -0.9f, 0.9f } },
-        { { 0.8f, 0.9f }, { 0.9f, 0.8f } },
-        { { 0.8f, 0.9f }, { 0.9f, 0.8f } },
-        { { 0.8f, 0.9f }, { 0.9f, 0.8f } },
-        { { 0.8f, 0.88f }, { 0.88f, 0.8f } },
-        { { 0.8f, 0.85f }, { 0.85f, 0.8f } },
-        { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
-        { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
-        { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
-        { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
+        { { -0.98f, 0.98f }, { 0.98f, 0.98f } },
+        { { 0.98f, 0.98f }, { 0.98f, -0.98f } },
+        { { 0.98f, -0.98f }, { -0.98f, -0.98f } },
+        { { -0.98f, -0.98f }, { -0.98f, 0.98f } },
     };
 
     for (const Line& wall : walls)
@@ -95,7 +86,11 @@ void ApplicationImpl::Init()
 
 void ApplicationImpl::DrawUI(float frameTimeSec)
 {
-    ImGui::Begin("Control panel");
+    ImGui::Begin("Control panel", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+    ImGui::SetWindowPos({ static_cast<float>(appContext.config.viewportWidth), 0.0f });
+    ImGui::SetWindowSize({
+        static_cast<float>(appContext.config.windowWidth - appContext.config.viewportWidth),
+        static_cast<float>(appContext.config.windowHeight) });
 
     const float currentTimeInSeconds = appContext.GetApplicationExecutionTime().count() / (1000.0f * 1000.0f);
     const float frameTimeMs = frameTimeSec * 1000.0f;

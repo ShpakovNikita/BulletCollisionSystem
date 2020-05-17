@@ -40,17 +40,25 @@ void GameScene::DrawCollisionQuadTree()
 
 void GameScene::AddWall(const Line& wall)
 {
-    walls.push_back({ std::get<0>(wall), std::get<1>(wall) });
-    quadtree.Insert(walls.back());
+    auto it = std::find(walls.begin(), walls.end(), wall);
+    if (it == walls.end())
+    {
+        walls.push_back(wall);
+        quadtree.Insert(walls.back());
+    }
 }
 
 void GameScene::RemoveWall(const Line& wall)
 {
-    walls.erase(std::remove(walls.begin(), walls.end(), wall), walls.end());
-    quadtree.Remove(wall);
+    auto it = std::find(walls.begin(), walls.end(), wall);
+    if (it != walls.end())
+    {
+        walls.erase(it);
+        quadtree.Remove(wall);
+    }
 }
 
 std::vector<Line> GameScene::GetBBoxCollidedWalls(const Line& wall)
 {
-    return quadtree.GetCollidedObjects({ std::get<0>(wall), std::get<1>(wall) });
+    return quadtree.GetCollidedObjects(wall);
 }

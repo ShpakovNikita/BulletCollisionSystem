@@ -2,6 +2,7 @@
 #include "GameScene.hpp"
 #include "Core/Renderer.hpp"
 #include "Core/AppContext.hpp"
+#include "Utils/Display.hpp"
 
 WallCreationController::WallCreationController(GameScene& aGameScene, const AppContext& aAppContext)
     : appContext(aAppContext)
@@ -14,26 +15,22 @@ void WallCreationController::InputEvent(const SDL_Event& event)
 {
     if (event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP)
     {
-        int width, height;
-        SDL_GetWindowSize(appContext.window, &width, &height);
-
-        // TODO: remove after coordinates setup in engine
-        float x = (static_cast<float>(event.button.x) / width - 0.5f) * 2.0f;
-        float y = -(static_cast<float>(event.button.y) / height - 0.5f) * 2.0f;
+        Vector2 mouseCoords = Display::GetViewportSpaceCoordinates(
+            event.button.x, event.button.y, appContext.config.viewportWidth, appContext.config.viewportHeight);
 
         switch (event.type)
         {
         case SDL_MOUSEMOTION:
             if (wallCreateInfo)
             {
-                std::get<1>(wallCreateInfo.value()) = { x, y };
+                std::get<1>(wallCreateInfo.value()) = mouseCoords;
             }
             break;
 
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_RIGHT)
             {
-                wallCreateInfo = { { x, y }, { x, y } };
+                wallCreateInfo = { mouseCoords, mouseCoords };
             }
             break;
 
@@ -42,7 +39,7 @@ void WallCreationController::InputEvent(const SDL_Event& event)
             {
                 Vector2& startPoint = std::get<0>(wallCreateInfo.value());
                 Vector2& endPoint = std::get<1>(wallCreateInfo.value());
-                endPoint = { x, y };
+                endPoint = mouseCoords;
 
                 if (startPoint != endPoint)
                 {

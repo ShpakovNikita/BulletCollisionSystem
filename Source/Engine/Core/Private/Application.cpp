@@ -86,11 +86,12 @@ void Application::Init()
         throw std::runtime_error("Error: " + std::string(SDL_GetError()));
     }
 
-    SDL_WindowFlags window_flags = static_cast<SDL_WindowFlags>(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    appContext.window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    SDL_WindowFlags window_flags = static_cast<SDL_WindowFlags>(SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+    appContext.window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
+        appContext.config.windowWidth, appContext.config.windowHeight, window_flags);
 
-    appContext.renderer->Init(appContext.window);
-    appContext.imgui->Init(appContext.renderer.get(), appContext.window);
+    appContext.renderer->Init();
+    appContext.imgui->Init();
 
     appContext.applicationInitTime = std::chrono::steady_clock::now();
 }

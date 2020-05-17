@@ -5,8 +5,8 @@
 AppContext::AppContext(const ApplicationConfig& aConfig)
     : config(aConfig)
 {
-    renderer = std::make_unique<Renderer>();
-    imgui = std::make_unique<Imgui>();
+    renderer = std::make_unique<Renderer>(*this);
+    imgui = std::make_unique<Imgui>(*this);
 }
 
 AppContext::~AppContext() = default;

@@ -2,6 +2,7 @@
 #include "Managers/BulletManager.hpp"
 #include "Core/Renderer.hpp"
 #include "Core/AppContext.hpp"
+#include "Utils/Display.hpp"
 
 constexpr float kDefaultBulletLifeTime = 5.0f;
 
@@ -18,26 +19,22 @@ void BulletCreationController::InputEvent(const SDL_Event& event)
     {
         currentBulletCreateInfo;
 
-        int width, height;
-        SDL_GetWindowSize(appContext.window, &width, &height);
-
-        // TODO: remove after coordinates setup in engine
-        float x = (static_cast<float>(event.button.x) / width - 0.5f) * 2.0f;
-        float y = -(static_cast<float>(event.button.y) / height - 0.5f) * 2.0f;
+        Vector2 mouseCoords = Display::GetViewportSpaceCoordinates(
+            event.button.x, event.button.y, appContext.config.viewportWidth, appContext.config.viewportHeight);
 
         switch (event.type)
         {
         case SDL_MOUSEMOTION:
             if (currentBulletCreateInfo)
             {
-                std::get<1>(currentBulletCreateInfo.value()) = { x, y };
+                std::get<1>(currentBulletCreateInfo.value()) = mouseCoords;
             }
             break;
 
         case SDL_MOUSEBUTTONDOWN:
             if (event.button.button == SDL_BUTTON_LEFT)
             {
-                currentBulletCreateInfo = { { x, y }, { x, y } };
+                currentBulletCreateInfo = { mouseCoords, mouseCoords };
             }
             break;
 
@@ -46,7 +43,7 @@ void BulletCreationController::InputEvent(const SDL_Event& event)
             {
                 Vector2& startPoint = std::get<0>(currentBulletCreateInfo.value());
                 Vector2& endPoint = std::get<1>(currentBulletCreateInfo.value());
-                endPoint = { x, y };
+                endPoint = mouseCoords;
 
                 if (startPoint != endPoint)
                 {

@@ -2,11 +2,16 @@
 #include "examples/imgui_impl_opengl3.h"
 #include "examples/imgui_impl_sdl.h"
 #include "Core/Renderer.hpp"
+#include "Core/AppContext.hpp"
 
-void Imgui::Init(Renderer* renderer, SDL_Window* aWindow)
+Imgui::Imgui(const AppContext& aAppContext)
+    : appContext(aAppContext)
 {
-    window = aWindow;
 
+}
+
+void Imgui::Init()
+{
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -17,8 +22,8 @@ void Imgui::Init(Renderer* renderer, SDL_Window* aWindow)
 
     ImGui::StyleColorsDark();
 
-    ImGui_ImplSDL2_InitForOpenGL(window, renderer->GetApiContext());
-    ImGui_ImplOpenGL3_Init(renderer->GetApiVersion().c_str());
+    ImGui_ImplSDL2_InitForOpenGL(appContext.window, appContext.renderer->GetApiContext());
+    ImGui_ImplOpenGL3_Init(appContext.renderer->GetApiVersion().c_str());
 }
 
 void Imgui::InputEvent(const SDL_Event& event)
@@ -31,8 +36,6 @@ void Imgui::Cleanup()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
-
-    window = nullptr;
 }
 
 void Imgui::EndFrame()
@@ -44,6 +47,6 @@ void Imgui::EndFrame()
 void Imgui::StartFrame()
 {
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame(window);
+    ImGui_ImplSDL2_NewFrame(appContext.window);
     ImGui::NewFrame();
 }

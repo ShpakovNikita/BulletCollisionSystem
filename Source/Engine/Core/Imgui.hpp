@@ -1,19 +1,21 @@
 #pragma once
 #include "SDL_events.h"
 
-class Renderer;
-struct SDL_Window;
+class AppContext;
 
 class Imgui
 {
+public:
+    Imgui(const AppContext& appContext);
+
 private:
-    void Init(Renderer* renderer, SDL_Window* window);
+    void Init();
     void Cleanup();
     void EndFrame();
     void StartFrame();
     void InputEvent(const SDL_Event& event);
 
-    SDL_Window* window = nullptr;
+    const AppContext& appContext;
 
     friend class Application;
 };

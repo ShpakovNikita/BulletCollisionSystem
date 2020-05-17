@@ -9,6 +9,12 @@ class Imgui;
 struct ApplicationConfig
 {
     uint32_t expectedFps = 144;
+
+    uint32_t viewportWidth = 720;
+    uint32_t viewportHeight = 720;
+
+    uint32_t windowWidth = 1280;
+    uint32_t windowHeight = 720;
 };
 
 class AppContext
@@ -28,7 +34,7 @@ public:
     mutable SDL_Window* window = nullptr;
 
     std::unique_ptr<Renderer> renderer;
-    std::unique_ptr<Imgui> imgui = nullptr;
+    std::unique_ptr<Imgui> imgui;
 
     ApplicationConfig config;
 

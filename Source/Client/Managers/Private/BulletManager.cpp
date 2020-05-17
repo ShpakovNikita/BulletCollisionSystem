@@ -28,11 +28,11 @@ void BulletManager::Update([[ maybe_unused ]] float time)
 }
 
 void BulletManager::Fire(
-    [[ maybe_unused ]] const Vector2& pos,
-    [[ maybe_unused ]] const Vector2& dir, 
-    [[ maybe_unused ]] float speed, 
-    [[ maybe_unused ]] float time, 
-    [[ maybe_unused ]] float lifeTime)
+    const Vector2& pos,
+    const Vector2& dir, 
+    float speed, 
+    [[maybe_unused]] float time, 
+    float lifeTime)
 {
     assert(dir != Vector2::kZero && speed != 0.0f && lifeTime != 0.0f);
 
@@ -85,7 +85,7 @@ void BulletManager::UpdateBulletPositions(float deltaTime)
             if (collidedPoint)
             {
                 Vector2 wallVector = wallEnd - wallStart;
-                Vector2 wallNormal = MathHelpers::GetPerpendicular(wallVector);
+                Vector2 wallNormal = MathHelpers::GetPerpendicular(wallVector).Normalized();
                
                 // The idea is to get our normal always pointing towards our bullet hit
                 MathHelpers::eOrientation orientation = MathHelpers::GetOrientation(wallStart, wallEnd, bullet.pos);

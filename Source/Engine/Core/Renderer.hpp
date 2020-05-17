@@ -5,12 +5,14 @@
 #include <vector>
 #include "Math/Vector3.hpp"
 
-struct SDL_Window;
 struct Vector2;
+class AppContext;
 
 class Renderer
 {
 public:
+    Renderer(const AppContext& appContext);
+
     void DrawLines(const std::vector<Vector2>& linePoints, const Vector3& color = Vector3::kGreen, bool drawAsStrip = false) const;
     void DrawLine(const Vector2& startPoint, const Vector2& endPoint, const Vector3& color = Vector3::kGreen) const;
     void DrawPoint(const Vector2& position, float radius, const Vector3& color = Vector3::kGreen, uint32_t segmentsCount = 8) const;
@@ -36,7 +38,7 @@ private:
 
     static void BindBuffersForBatch(BatchInfo& batchInfo);
 
-    void Init(SDL_Window* window);
+    void Init();
     void Cleanup();
     void EndFrame();
     void StartFrame();
@@ -46,7 +48,7 @@ private:
     uint32_t CreateShaderProgram(std::future<std::string>& vertexShaderSource, std::future<std::string>& fragmentShaderSource);
     uint32_t CompileShader(const std::string& shaderSource, uint32_t shaderType);
 
-    SDL_Window* window = nullptr;
+    const AppContext& appContext;
     mutable void* apiContext = nullptr;
     std::string apiVersion = {};
 
