@@ -8,7 +8,7 @@
 #include <thread>
 #include "Math/Vector2.hpp"
 
-void Renderer::DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStrip /*= false*/) const
+void Renderer::DrawLines(const std::vector<Vector2>& linePoints, const Vector3& color /*= Vector3::kGreen*/, bool drawAsStrip /*= false*/) const
 {
     BatchInfo batchInfo;
     batchInfo.persistent = false;
@@ -17,7 +17,10 @@ void Renderer::DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStri
 
     for (const Vector2& linePoint : linePoints)
     {
-        batchInfo.vertices.push_back({ linePoint.x, linePoint.y, 0.0f });
+        BatchInfo::Vertex vertex;
+        vertex.color = color;
+        vertex.position = { linePoint.x, linePoint.y, 0.0f };
+        batchInfo.vertices.push_back(std::move(vertex));
     }
 
     BindBuffersForBatch(batchInfo);
@@ -25,12 +28,21 @@ void Renderer::DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStri
     batches.push_back(std::move(batchInfo));
 }
 
-void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint) const
+void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint, const Vector3& color /*= Vector3::kGreen*/) const
 {
     BatchInfo batchInfo;
     batchInfo.persistent = false;
     batchInfo.drawType = GL_LINES;
-    batchInfo.vertices = { { startPoint.x, startPoint.y, 0.0f }, {endPoint.x, endPoint.y, 0.0f} };
+
+    BatchInfo::Vertex lineStart;
+    lineStart.color = color;
+    lineStart.position = { startPoint.x, startPoint.y, 0.0f };
+
+    BatchInfo::Vertex lineEnd;
+    lineEnd.color = color;
+    lineEnd.position = { endPoint.x, endPoint.y, 0.0f };
+
+    batchInfo.vertices = { lineStart, lineEnd };
 
     // Sure it is better to use one VAO for all the lines, but it isn't the purpose of this test task
     BindBuffersForBatch(batchInfo);
@@ -38,15 +50,14 @@ void Renderer::DrawLine(const Vector2& startPoint, const Vector2& endPoint) cons
     batches.push_back(std::move(batchInfo));
 }
 
-void Renderer::DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount /*= 8*/) const
+void Renderer::DrawPoint(const Vector2& position, float radius, const Vector3& color /*= Vector3::kGreen*/, uint32_t segmentsCount /*= 8*/) const
 {
     BatchInfo batchInfo;
     batchInfo.persistent = false;
     batchInfo.drawType = GL_TRIANGLE_FAN;
 
-    batchInfo.vertices.reserve(segmentsCount + 2);
+    batchInfo.vertices.reserve(segmentsCount);
 
-    batchInfo.vertices.push_back({ position.x, position.y, 0.0f});
     for (uint32_t i = 0; i < segmentsCount; ++i)
     {
         const float alpha = 2.0f * static_cast<float>(M_PI) * i / segmentsCount;
@@ -55,9 +66,12 @@ void Renderer::DrawPoint(const Vector2& position, float radius, uint32_t segment
             position.y + radius * std::sinf(alpha),
             0.0f };
 
-        batchInfo.vertices.push_back(std::move(fanVertexPosition));
+        BatchInfo::Vertex vertex;
+        vertex.color = color;
+        vertex.position = fanVertexPosition;
+
+        batchInfo.vertices.push_back(std::move(vertex));
     }
-    batchInfo.vertices.push_back({ position.x + radius, position.y, 0.0f });
 
     // Sure it is better to use one VAO for all the points, but it isn't the purpose of this test task
     BindBuffersForBatch(batchInfo);
@@ -73,10 +87,13 @@ void Renderer::BindBuffersForBatch(BatchInfo& batchInfo)
     glGenBuffers(1, &batchInfo.VBO);
 
     glBindBuffer(GL_ARRAY_BUFFER, batchInfo.VBO);
-    glBufferData(GL_ARRAY_BUFFER, batchInfo.vertices.size() * sizeof(Vector3), batchInfo.vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, batchInfo.vertices.size() * sizeof(BatchInfo::Vertex), batchInfo.vertices.data(), GL_STREAM_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -156,7 +173,9 @@ void Renderer::DrawBatches()
     for (const BatchInfo& batchInfo : batches)
     {
         glBindVertexArray(batchInfo.VAO);
+        
         glDrawArrays(batchInfo.drawType, 0, static_cast<GLsizei>(batchInfo.vertices.size()));
+
         glBindVertexArray(0);
     }
 }

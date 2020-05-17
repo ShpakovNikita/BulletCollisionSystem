@@ -11,9 +11,9 @@ struct Vector2;
 class Renderer
 {
 public:
-    void DrawLines(const std::vector<Vector2>& linePoints, bool drawAsStrip = false) const;
-    void DrawLine(const Vector2& startPoint, const Vector2& endPoint) const;
-    void DrawPoint(const Vector2& position, float radius, uint32_t segmentsCount = 8) const;
+    void DrawLines(const std::vector<Vector2>& linePoints, const Vector3& color = Vector3::kGreen, bool drawAsStrip = false) const;
+    void DrawLine(const Vector2& startPoint, const Vector2& endPoint, const Vector3& color = Vector3::kGreen) const;
+    void DrawPoint(const Vector2& position, float radius, const Vector3& color = Vector3::kGreen, uint32_t segmentsCount = 8) const;
 
     inline void* GetApiContext() const { return apiContext; }
     inline const std::string& GetApiVersion() const { return apiVersion; }
@@ -21,8 +21,14 @@ public:
 private:
     struct BatchInfo
     {
+        struct Vertex
+        {
+            Vector3 position;
+            Vector3 color;
+        };
+
         uint32_t drawType;
-        std::vector<Vector3> vertices;
+        std::vector<Vertex> vertices;
 
         uint32_t VAO = 0, VBO = 0;
         bool persistent = false;
