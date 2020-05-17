@@ -13,7 +13,7 @@
 
 
 Application::Application(const ApplicationConfig& aConfig)
-    : config(aConfig)
+    : appContext(aConfig)
 {}
 
 Application::~Application() = default;
@@ -23,35 +23,41 @@ void Application::Run()
     Init();
 
     std::chrono::duration frameDelta = std::chrono::microseconds(0);
-    std::chrono::duration frameTimeLimit = std::chrono::microseconds(1000 * 1000 / config.fpsLimit);
+    std::chrono::duration expectedFrameTime = std::chrono::microseconds(1000 * 1000 / appContext.config.expectedFps);
 
     std::chrono::time_point<std::chrono::steady_clock> currentTime = std::chrono::steady_clock::now();
 
-    while (!exit)
+    while (!appContext.exit)
     {
-        // TODO: add sleep
         std::chrono::time_point<std::chrono::steady_clock> newCurrentTime = std::chrono::steady_clock::now();
         frameDelta = std::chrono::duration_cast<std::chrono::microseconds>(newCurrentTime - currentTime);
-        frameDelta = std::clamp(frameDelta, std::chrono::microseconds(0), frameTimeLimit);
-        currentExecutionTime = std::chrono::duration_cast<std::chrono::microseconds>(currentExecutionTime + frameDelta);
+
+        if (frameDelta >= std::chrono::seconds(1))
+        {
+            frameDelta = std::clamp(frameDelta, std::chrono::microseconds(0), expectedFrameTime);
+        }
+
+        appContext.currentExecutionTime = std::chrono::duration_cast<std::chrono::microseconds>(appContext.currentExecutionTime + frameDelta);
         currentTime = newCurrentTime;
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            imgui->InputEvent(event);
+            appContext.imgui->InputEvent(event);
             InputEvent(event);
         }
 
-        renderer->StartFrame();
-        imgui->StartFrame();
+        appContext.renderer->StartFrame();
+        appContext.imgui->StartFrame();
 
         Tick(frameDelta);
 
-        renderer->DrawBatches();
+        appContext.renderer->DrawBatches();
 
-        imgui->EndFrame();
-        renderer->EndFrame();
+        appContext.imgui->EndFrame();
+        appContext.renderer->EndFrame();
+
+        // Because of force enabled VSync we dont have to sleep here
     }
 
     Cleanup();
@@ -59,12 +65,12 @@ void Application::Run()
 
 void Application::QuitApplication()
 {
-    exit = true;
+    appContext.exit = true;
 }
 
-const std::chrono::microseconds& Application::GetApplicationExecutionTime() const
+const AppContext& Application::GetAppContext() const
 {
-    return currentExecutionTime;
+    return appContext;
 }
 
 void Application::Tick(const std::chrono::microseconds&)
@@ -81,27 +87,19 @@ void Application::Init()
     }
 
     SDL_WindowFlags window_flags = static_cast<SDL_WindowFlags>(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    appContext.window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
 
-    renderer = new Renderer();
-    renderer->Init(window);
+    appContext.renderer->Init(appContext.window);
+    appContext.imgui->Init(appContext.renderer.get(), appContext.window);
 
-    imgui = new Imgui();
-    imgui->Init(renderer, window);
-
-    applicationInitTime = std::chrono::steady_clock::now();
+    appContext.applicationInitTime = std::chrono::steady_clock::now();
 }
 
 void Application::Cleanup()
 {
-    imgui->Cleanup();
-    delete imgui;
-    imgui = nullptr;
+    appContext.imgui->Cleanup();
+    appContext.renderer->Cleanup();
 
-    renderer->Cleanup();
-    delete renderer;
-    renderer = nullptr;
-
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(appContext.window);
     SDL_Quit();
 }

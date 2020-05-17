@@ -4,20 +4,21 @@
 #include <optional>
 
 class BulletManager;
-class Renderer;
-struct SDL_Window;
+class AppContext;
 
 class BulletCreationController
 {
 public:
-    BulletCreationController(BulletManager& bulletManager, SDL_Window& window);
+    BulletCreationController(BulletManager& bulletManager, const AppContext& appContext);
 
     void InputEvent(const SDL_Event& event);
 
-    void DrawTrajectory(const Renderer* renderer);
+    void DrawTrajectory();
+
+    void CreateFireTask(const Vector2& pos, const Vector2& dir, float speed, float time, float lifeTime);
 
 private: 
-    SDL_Window& window;
+    const AppContext& appContext;
     BulletManager& bulletManager;
     std::optional<Line> currentBulletCreateInfo;
 };

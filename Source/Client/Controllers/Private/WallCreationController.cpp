@@ -1,9 +1,10 @@
 #include "Controllers/WallCreationController.hpp"
 #include "GameScene.hpp"
 #include "Core/Renderer.hpp"
+#include "Core/AppContext.hpp"
 
-WallCreationController::WallCreationController(GameScene& aGameScene, SDL_Window& aWindow)
-    : window(aWindow)
+WallCreationController::WallCreationController(GameScene& aGameScene, const AppContext& aAppContext)
+    : appContext(aAppContext)
     , gameScene(aGameScene)
 {
 
@@ -14,7 +15,7 @@ void WallCreationController::InputEvent(const SDL_Event& event)
     if (event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP)
     {
         int width, height;
-        SDL_GetWindowSize(&window, &width, &height);
+        SDL_GetWindowSize(appContext.window, &width, &height);
 
         // TODO: remove after coordinates setup in engine
         float x = (static_cast<float>(event.button.x) / width - 0.5f) * 2.0f;
@@ -56,10 +57,10 @@ void WallCreationController::InputEvent(const SDL_Event& event)
     }
 }
 
-void WallCreationController::DrawTrajectory(const Renderer* renderer)
+void WallCreationController::DrawTrajectory()
 {
     if (wallCreateInfo)
     {
-        renderer->DrawLine(std::get<1>(wallCreateInfo.value()), std::get<0>(wallCreateInfo.value()));
+        appContext.renderer->DrawLine(std::get<1>(wallCreateInfo.value()), std::get<0>(wallCreateInfo.value()));
     }
 }

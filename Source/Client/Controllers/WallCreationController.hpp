@@ -4,20 +4,19 @@
 #include <optional>
 
 class GameScene;
-class Renderer;
-struct SDL_Window;
+class AppContext;
 
 class WallCreationController
 {
 public:
-    WallCreationController(GameScene& gameScene, SDL_Window& window);
+    WallCreationController(GameScene& gameScene, const AppContext& appContext);
 
     void InputEvent(const SDL_Event& event);
 
-    void DrawTrajectory(const Renderer* renderer);
+    void DrawTrajectory();
 
 private:
-    SDL_Window& window;
+    const AppContext& appContext;
     GameScene& gameScene;
     std::optional<Line> wallCreateInfo;
 };

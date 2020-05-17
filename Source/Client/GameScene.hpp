@@ -4,16 +4,14 @@
 #include "Math\Line.hpp"
 #include "Math\DataStructures\Quadtree.hpp"
 
-class Renderer;
+class AppContext;
 
 class GameScene
 {
 public:
-    GameScene();
+    GameScene(const AppContext& appContext);
 
     void Update(float time);
-
-    void SetRenderer(const Renderer* renderer);
 
     void DrawCollisionQuadTree();
 
@@ -24,5 +22,5 @@ public:
 private:
     void DrawLevel();
 
-    const Renderer* renderer = nullptr;
+    const AppContext& appContext;
 };

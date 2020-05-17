@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Core\Application.hpp"
-#include "Managers\BulletManager.hpp"
-#include "GameScene.hpp"
 #include <memory>
 
 class WallCreationController;
 class BulletCreationController;
+class GameScene;
+class BulletManager;
 
 class ApplicationImpl final : public Application
 {
@@ -27,8 +27,8 @@ private:
 
     void DrawUI(float frameTimeSec);
 
-    GameScene gameScene;
-    BulletManager bulletManager;
+    std::unique_ptr<GameScene> gameScene;
+    std::unique_ptr<BulletManager> bulletManager;
 
     std::unique_ptr<WallCreationController> wallCreationController;
     std::unique_ptr<BulletCreationController> bulletCreationController;

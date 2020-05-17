@@ -5,11 +5,19 @@
 #include "Utils/Intersection.hpp"
 #include "Math/MathHelpers.hpp"
 #include "Math/AABBox2.hpp"
+#include "Core/AppContext.hpp"
 
-BulletManager::BulletManager(GameScene& aGameScene)
+BulletManager::BulletManager(GameScene& aGameScene, const AppContext& aAppContext)
     : gameScene(aGameScene)
+    , appContext(aAppContext)
 {
 
+}
+
+BulletManager::~BulletManager()
+{
+    std::lock_guard lock(mutex);
+    firedBullets.clear();
 }
 
 void BulletManager::Update([[ maybe_unused ]] float time)
@@ -39,18 +47,11 @@ void BulletManager::Fire(
     firedBullets.push_back(std::move(bullet));
 }
 
-void BulletManager::SetRenderer(const Renderer* aRenderer)
-{
-    renderer = aRenderer;
-}
-
 void BulletManager::DrawBullets()
 {
-    assert(renderer);
-
     for (const Bullet& bullet : firedBullets)
     {
-        renderer->DrawPoint(bullet.pos, 0.02f);
+        appContext.renderer->DrawPoint(bullet.pos, 0.02f);
     }
 }
 

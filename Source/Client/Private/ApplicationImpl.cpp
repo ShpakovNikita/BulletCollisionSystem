@@ -12,6 +12,8 @@
 #include "Math\DataStructures\Quadtree.hpp"
 #include "Controllers\WallCreationController.hpp"
 #include "Controllers\BulletCreationController.hpp"
+#include "GameScene.hpp"
+#include "Managers\BulletManager.hpp"
 
 void ApplicationImpl::Tick(const std::chrono::microseconds& deltaTime)
 {
@@ -20,17 +22,17 @@ void ApplicationImpl::Tick(const std::chrono::microseconds& deltaTime)
     float deltaTimeInSeconds = deltaTime.count() / (1000.0f * 1000.0f);
     // float currentTimeInSeconds = GetApplicationExecutionTime().count() / (1000.0f * 1000.0f);
 
-    bulletManager.Update(deltaTimeInSeconds);
-    gameScene.Update(deltaTimeInSeconds);
+    bulletManager->Update(deltaTimeInSeconds);
+    gameScene->Update(deltaTimeInSeconds);
 
     DrawUI(deltaTimeInSeconds);
 
-    wallCreationController->DrawTrajectory(renderer);
-    bulletCreationController->DrawTrajectory(renderer);
+    wallCreationController->DrawTrajectory();
+    bulletCreationController->DrawTrajectory();
 
     if (uiData.drawCollisionQuadTree)
     {
-        gameScene.DrawCollisionQuadTree();
+        gameScene->DrawCollisionQuadTree();
     }
 }
 
@@ -42,7 +44,7 @@ void ApplicationImpl::InputEvent(const SDL_Event& event)
     {
         QuitApplication();
     }
-    if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+    if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(appContext.window))
     {
         QuitApplication();
     }
@@ -56,16 +58,17 @@ void ApplicationImpl::InputEvent(const SDL_Event& event)
 }
 
 ApplicationImpl::ApplicationImpl()
-    : Application({ 60 })
-    , bulletManager(gameScene)
-{
-}
+    : Application({ 144 })
+{}
 
 void ApplicationImpl::Init()
 {
     Application::Init();
 
-    gameScene.walls = {
+    gameScene = std::make_unique<GameScene>(appContext);
+    bulletManager = std::make_unique<BulletManager>(*gameScene, appContext);
+
+    gameScene->walls = {
         { { -0.9f, 0.9f }, { 0.9f, 0.9f } },
         { { 0.9f, 0.9f }, { 0.9f, -0.9f } },
         { { 0.9f, -0.9f }, { -0.9f, -0.9f } },
@@ -81,22 +84,20 @@ void ApplicationImpl::Init()
         { { 0.8f, 0.82f }, { 0.82f, 0.8f } },
     };
 
-    for (const Line& wall : gameScene.walls)
+    for (const Line& wall : gameScene->walls)
     {
-        gameScene.quadtree.Insert(wall);
+        gameScene->quadtree.Insert(wall);
     }
 
-    wallCreationController = std::make_unique<WallCreationController>(gameScene, *window);
-    bulletCreationController = std::make_unique<BulletCreationController>(bulletManager, *window);
-
-    gameScene.SetRenderer(renderer);
-    bulletManager.SetRenderer(renderer);
+    wallCreationController = std::make_unique<WallCreationController>(*gameScene, appContext);
+    bulletCreationController = std::make_unique<BulletCreationController>(*bulletManager, appContext);
 }
 
 void ApplicationImpl::DrawUI(float frameTimeSec)
 {
     ImGui::Begin("Control panel");
 
+    const float currentTimeInSeconds = appContext.GetApplicationExecutionTime().count() / (1000.0f * 1000.0f);
     const float frameTimeMs = frameTimeSec * 1000.0f;
 
     {
@@ -107,7 +108,6 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
     }
 
     {
-        float currentTimeInSeconds = GetApplicationExecutionTime().count() / (1000.0f * 1000.0f);
         const ImVec4 textColor = { 1.0f, 1.0f, 0.0f, 1.0f };
         char label[256];
         snprintf(label, sizeof(label), "Current global time: %f sec", currentTimeInSeconds);
@@ -117,7 +117,7 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
     {
         const size_t kFrameTimesCount = 100;
         static std::vector<float> frameTimes(kFrameTimesCount, 0.0f);
-        const float frameTimeLimit = 1000.0f / config.fpsLimit;
+        const float frameTimeLimit = 2.0f * 1000.0f / appContext.config.expectedFps;
 
         // Shift vector values to create circular buffer effect
         for (size_t i = 1; i < kFrameTimesCount; ++i)
@@ -173,14 +173,14 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
             else
             {
                 uiData.fireInvalidDataErrorShown = false;
-                bulletManager.Fire(firePosition, fireDirection, speed, shotStartTime, bulletLifetime);
+                bulletCreationController->CreateFireTask(firePosition, fireDirection, speed, shotStartTime, bulletLifetime);
             }
         }
 
         if (uiData.fireInvalidDataErrorShown)
         {
             const ImVec4 textColor = { 1.0f, 0.0f, 0.0f, 1.0f };
-            ImGui::TextColored(textColor, "You passed wrong data! Something crucial is equals to 0.0f");
+            ImGui::TextColored(textColor, "You passed wrong data! Something crucial is invalid");
         }
     }
 

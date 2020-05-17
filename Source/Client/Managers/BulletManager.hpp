@@ -4,17 +4,16 @@
 #include "Math\Line.hpp"
 
 class GameScene;
-class Renderer;
+class AppContext;
 
 class BulletManager
 {
 public:
-    BulletManager(GameScene& gameScene);
+    BulletManager(GameScene& gameScene, const AppContext& appContext);
+    ~BulletManager();
 
     void Update(float time);
     void Fire(const Vector2& pos, const Vector2& dir, float speed, float time, float lifeTime);
-
-    void SetRenderer(const Renderer* renderer);
 
 private:
     struct Bullet
@@ -34,5 +33,5 @@ private:
     std::vector<Bullet> firedBullets;
     GameScene& gameScene;
 
-    const Renderer* renderer = nullptr;
+    const AppContext& appContext;
 };

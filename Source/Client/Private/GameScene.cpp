@@ -3,12 +3,14 @@
 #include <utility>
 #include <assert.h>
 #include "Math\MathHelpers.hpp"
+#include "Core\AppContext.hpp"
 
-GameScene::GameScene()
+GameScene::GameScene(const AppContext& aAppContext)
     : quadtree(AABBox2{ {-1.0f, -1.0f}, {1.0f, 1.0f} }, [](const Line& line)
-{
-    return MathHelpers::CreateBBox(std::get<0>(line), std::get<1>(line));
-})
+    {
+        return MathHelpers::CreateBBox(std::get<0>(line), std::get<1>(line));
+    })
+    , appContext(aAppContext)
 {
 
 }
@@ -20,8 +22,6 @@ void GameScene::Update(float)
 
 void GameScene::DrawLevel()
 {
-    assert(renderer);
-
     std::vector<Vector2> lines;
     lines.reserve(walls.size() * 2);
     for (const Line& line : walls)
@@ -30,15 +30,10 @@ void GameScene::DrawLevel()
         lines.push_back(std::get<1>(line));
     }
 
-    renderer->DrawLines(lines);
-}
-
-void GameScene::SetRenderer(const Renderer* aRenderer)
-{
-    renderer = aRenderer;
+    appContext.renderer->DrawLines(lines);
 }
 
 void GameScene::DrawCollisionQuadTree()
 {
-    quadtree.DebugDraw(renderer);
+    quadtree.DebugDraw(appContext.renderer.get());
 }
