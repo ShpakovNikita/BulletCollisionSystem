@@ -1,7 +1,7 @@
 #include <mutex>
 #include <vector>
 #include "Math\Vector2.hpp"
-#include "Math\Line.hpp"
+#include "Math\Vector3.hpp"
 
 class GameScene;
 class AppContext;
@@ -16,25 +16,30 @@ public:
     void Fire(const Vector2& pos, const Vector2& dir, float speed, float time, float lifeTime);
 
     size_t GetBulletsOnSceneCount() const;
-    size_t GetBulletsInQueueCount() const;
+    size_t GetWaitingForFireBulletsCount() const;
 
 private:
     struct Bullet
     {
         Vector2 pos;
         Vector2 dir;
+        float fireTime;
         float speed;
-        float remainingLifeTime;
+        float lifeTime;
+
+        float previousUpdateTime;
     };
 
-    void DrawBullets();
+    void DrawBullets(float time);
     void UpdateBulletPositions(float time);
+    void UpdateBulletPosition(Bullet& bullet, float deltaTime);
     void ClipOutOfBordersBullets();
+    void RemoveDeadBullets(float time);
 
     mutable std::mutex mutex;
 
-    std::vector<Bullet> firedBullets;
-    std::vector<Bullet> bulletsQueue;
+    std::vector<Bullet> bulletsPool;
+
     GameScene& gameScene;
 
     const AppContext& appContext;

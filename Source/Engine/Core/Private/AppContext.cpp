@@ -18,3 +18,13 @@ const std::chrono::microseconds& AppContext::GetApplicationExecutionTime() const
     return currentExecutionTime;
 }
 
+const float AppContext::GetApplicationExecutionTimeSec() const
+{
+    return currentExecutionTime.count() / (1000.0f * 1000.0f);
+}
+
+const float AppContext::GetApplicationExecutionTimeMs() const
+{
+    return currentExecutionTime.count() / 1000.0f;
+}
+

@@ -20,10 +20,10 @@ void ApplicationImpl::Tick(const std::chrono::microseconds& deltaTime)
     Application::Tick(deltaTime);
 
     float deltaTimeInSeconds = deltaTime.count() / (1000.0f * 1000.0f);
-    // float currentTimeInSeconds = GetApplicationExecutionTime().count() / (1000.0f * 1000.0f);
+    float currentTimeInSeconds = appContext.GetApplicationExecutionTimeSec();
 
-    bulletManager->Update(deltaTimeInSeconds);
-    gameScene->Update(deltaTimeInSeconds);
+    bulletManager->Update(currentTimeInSeconds);
+    gameScene->Update(currentTimeInSeconds);
 
     DrawUI(deltaTimeInSeconds);
 
@@ -112,7 +112,7 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
     {
         const ImVec4 textColor = { 0.0f, 1.0f, 0.0f, 1.0f };
         char label[256];
-        snprintf(label, sizeof(label), "Current number of bullets in queue: %zu ", bulletManager->GetBulletsInQueueCount());
+        snprintf(label, sizeof(label), "Current number of bullets in queue: %zu ", bulletManager->GetWaitingForFireBulletsCount());
         ImGui::TextColored(textColor, label);
     }
 
@@ -175,7 +175,7 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
 
         if (ImGui::Button("Fire!"))
         {
-            if (fireDirection == Vector2::kZero || speed == 0.0f || bulletLifetime == 0.0f)
+            if (fireDirection == Vector2::kZero || speed == 0.0f || bulletLifetime == 0.0f || shotStartTime < currentTimeInSeconds)
             {
                 uiData.fireInvalidDataErrorShown = true;
             }
@@ -202,8 +202,10 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
     ImGui::Separator();
 
     {
-        ImGui::TextWrapped("Note: Checkbox below exists to create two seconds delay with std::this_thread::sleep_for "
-                           "before adding bullet to main queue. This may be handy for jobsPool testing.");
+        ImGui::TextWrapped("Checkbox below exists to create two seconds delay with std::this_thread::sleep_for "
+                           "before adding bullet to main queue. This may be handy for jobsPool testing. "
+                           "Note! With that option enabled, bullet initial position won't be under the cursor, "
+                           "because fire time off the bullet is now");
 
         uiData.delayFireTask = bulletCreationController->GetDelayTask();
         ImGui::Checkbox("Is fire task delay added", &uiData.delayFireTask);

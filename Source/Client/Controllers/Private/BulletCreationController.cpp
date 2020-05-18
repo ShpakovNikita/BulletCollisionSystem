@@ -5,7 +5,10 @@
 #include "Utils/Display.hpp"
 #include "Core/JobsPool.hpp"
 
-constexpr float kDefaultBulletLifeTime = 5.0f;
+namespace SBulletCreationController
+{
+    constexpr float kDefaultBulletLifeTime = 5.0f;
+}
 
 BulletCreationController::BulletCreationController(BulletManager& aBulletManager, const AppContext& aAppContext)
     : appContext(aAppContext)
@@ -52,7 +55,8 @@ void BulletCreationController::InputEvent(const SDL_Event& event)
                     Vector2 fireDirection = fireVelocity.Normalized();
                     float bulletSpeed = fireVelocity.Length();
 
-                    CreateFireTask(startPoint, fireDirection, bulletSpeed, kDefaultBulletLifeTime, 1000.0f);
+                    CreateFireTask(startPoint, fireDirection, bulletSpeed, appContext.GetApplicationExecutionTimeSec(), 
+                        SBulletCreationController::kDefaultBulletLifeTime);
                 }
 
                 currentBulletCreateInfo = std::nullopt;

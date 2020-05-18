@@ -7,31 +7,37 @@
 #include "Math/AABBox2.hpp"
 #include "Core/AppContext.hpp"
 
+namespace SBulletManager
+{
+    constexpr Vector3 kBulletStartColor = {0.0f, 1.0f, 0.0f};
+    constexpr Vector3 kBulletEndColor = {1.0f, 0.0f, 0.0f};
+}
+
 BulletManager::BulletManager(GameScene& aGameScene, const AppContext& aAppContext)
     : gameScene(aGameScene)
     , appContext(aAppContext)
-{
-
-}
+{}
 
 BulletManager::~BulletManager()
 {
     std::lock_guard lock(mutex);
-    firedBullets.clear();
+    bulletsPool.clear();
 }
 
-void BulletManager::Update([[ maybe_unused ]] float time)
+void BulletManager::Update(float time)
 {
+    std::lock_guard lock(mutex);
+    RemoveDeadBullets(time);
     UpdateBulletPositions(time);
     ClipOutOfBordersBullets();
-    DrawBullets();
+    DrawBullets(time);
 }
 
 void BulletManager::Fire(
     const Vector2& pos,
     const Vector2& dir, 
     float speed, 
-    [[maybe_unused]] float time, 
+    float time, 
     float lifeTime)
 {
     assert(dir != Vector2::kZero && speed != 0.0f && lifeTime != 0.0f);
@@ -41,80 +47,116 @@ void BulletManager::Fire(
     Bullet bullet = {};
     bullet.dir = dir.Normalized();
     bullet.pos = pos;
+    bullet.fireTime = time;
     bullet.speed = speed;
-    bullet.remainingLifeTime = lifeTime;
+    bullet.lifeTime = lifeTime;
+    bullet.previousUpdateTime = time;
 
-    firedBullets.push_back(std::move(bullet));
+    bulletsPool.push_back(std::move(bullet));
 }
 
 size_t BulletManager::GetBulletsOnSceneCount() const
 {
     std::lock_guard lock(mutex);
-    return firedBullets.size();
+    return bulletsPool.size();
 }
 
-size_t BulletManager::GetBulletsInQueueCount() const
+size_t BulletManager::GetWaitingForFireBulletsCount() const
 {
     std::lock_guard lock(mutex);
-    return bulletsQueue.size();
+    return std::count_if(bulletsPool.begin(), bulletsPool.end(), 
+        [this](const Bullet& bullet) { return bullet.previousUpdateTime > appContext.GetApplicationExecutionTimeMs(); });
 }
 
-void BulletManager::DrawBullets()
+void BulletManager::DrawBullets(float time)
 {
-    std::lock_guard lock(mutex);
-    for (const Bullet& bullet : firedBullets)
+    for (const Bullet& bullet : bulletsPool)
     {
-        appContext.renderer->DrawPoint(bullet.pos, 0.02f);
+        if (time > bullet.fireTime && bullet.fireTime + bullet.lifeTime > time)
+        {
+            float lerpParam = (time - bullet.fireTime) / bullet.lifeTime;
+            appContext.renderer->DrawPoint(bullet.pos, 0.02f,
+                MathHelpers::Lerp(SBulletManager::kBulletStartColor, SBulletManager::kBulletEndColor, lerpParam));
+        }
     }
 }
 
-void BulletManager::UpdateBulletPositions(float deltaTime)
+void BulletManager::UpdateBulletPositions(float time)
 {
-    std::lock_guard lock(mutex);
-    for (Bullet& bullet : firedBullets)
+    for (Bullet& bullet : bulletsPool)
     {
-        Vector2 deltaVelocityVector = bullet.dir * bullet.speed * deltaTime;
-        Vector2 newBulletPos = bullet.pos + deltaVelocityVector;
+        float deltaTime = time - bullet.previousUpdateTime;
 
-        std::vector<Line> bboxCollidedWalls = gameScene.GetBBoxCollidedWalls({ bullet.pos, newBulletPos });
+        if (deltaTime > 0.0f)
+        {
+            UpdateBulletPosition(bullet, deltaTime);
+            bullet.previousUpdateTime = time;
+        }
+    }
+}
+
+void BulletManager::UpdateBulletPosition(Bullet& bullet, float deltaTime)
+{
+    float bulletRemainingTracerLength = bullet.speed * deltaTime;
+
+    bool collided = true;
+    while (collided)
+    {
+        collided = false;
+
+        Vector2 bulletNewPossiblePosition = bullet.dir * bulletRemainingTracerLength;
+        std::vector<Line> bboxCollidedWalls = gameScene.GetBBoxCollidedWalls({ bullet.dir, bulletNewPossiblePosition });
 
         for (const Line& wall : bboxCollidedWalls)
         {
             const Vector2& wallStart = std::get<0>(wall);
             const Vector2& wallEnd = std::get<1>(wall);
             std::optional<Vector2> collidedPoint = Intersection::SegmentSegmentIntersection(
-                wallStart, wallEnd, bullet.pos, newBulletPos);
+                wallStart, wallEnd, bullet.pos, bulletNewPossiblePosition);
 
             if (collidedPoint)
             {
+                float bulletHitPathLength = (collidedPoint.value() - bullet.pos).Length();
+                bulletRemainingTracerLength -= bulletHitPathLength;
+
                 Vector2 wallVector = wallEnd - wallStart;
                 Vector2 wallNormal = MathHelpers::GetPerpendicular(wallVector).Normalized();
-               
+
                 // The idea is to get our normal always pointing towards our bullet hit
                 MathHelpers::eOrientation orientation = MathHelpers::GetOrientation(wallStart, wallEnd, bullet.pos);
                 wallNormal = orientation == MathHelpers::eOrientation::kCounterclockwise ? wallNormal : -wallNormal;
 
                 Vector2 newDirection = MathHelpers::Reflect(-bullet.dir, wallNormal);
+
                 bullet.dir = newDirection.Normalized();
-                newBulletPos = collidedPoint.value() + newDirection * bullet.speed * deltaTime;
+                bullet.pos = collidedPoint.value();
 
                 gameScene.RemoveWall({ wallStart, wallEnd });
 
+                collided = true;
                 break;
             }
         }
-
-        bullet.pos = newBulletPos;
     }
+
+    bullet.pos = bullet.pos + bullet.dir * bulletRemainingTracerLength;
 }
 
 void BulletManager::ClipOutOfBordersBullets()
 {
-    std::lock_guard lock(mutex);
     constexpr AABBox2 worldBordersBBox = { {-1.0f, -1.0f}, {1.0f, 1.0f} };
-    auto clipBulletConditionsCheck = [&worldBordersBBox](const Bullet& bullet) {
+    auto removeBulletConditionsCheck = [&worldBordersBBox](const Bullet& bullet) {
         return !Intersection::PointBoxIntersection(bullet.pos, worldBordersBBox);
     };
 
-    firedBullets.erase(std::remove_if(firedBullets.begin(), firedBullets.end(), clipBulletConditionsCheck), firedBullets.end());
+    bulletsPool.erase(std::remove_if(bulletsPool.begin(), bulletsPool.end(), removeBulletConditionsCheck), bulletsPool.end());
+}
+
+void BulletManager::RemoveDeadBullets(float time)
+{
+    auto removeBulletConditionsCheck = [time](const Bullet& bullet) {
+        return bullet.fireTime + bullet.lifeTime < time;
+    };
+
+    bulletsPool.erase(std::remove_if(bulletsPool.begin(), bulletsPool.end(), removeBulletConditionsCheck), bulletsPool.end());
 }

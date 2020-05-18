@@ -22,4 +22,14 @@ namespace MathHelpers
     bool Equals(float a, float b, float epsilon = kFloatEpsilon);
 
     AABBox2 CreateBBox(const Vector2& v1, const Vector2& v2);
+
+    template<typename T>
+    T Lerp(const T& a, const T& b, float param);
+}
+
+template<typename T>
+T MathHelpers::Lerp(const T& a, const T& b, float param)
+{
+    assert(param >= 0.0f && param <= 1.0f);
+    return a + (b - a) * param;
 }

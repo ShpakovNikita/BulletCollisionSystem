@@ -31,6 +31,9 @@ public:
     */
     const std::chrono::microseconds& GetApplicationExecutionTime() const;
 
+    const float GetApplicationExecutionTimeSec() const;
+    const float GetApplicationExecutionTimeMs() const;
+
     // window lifetime managed by SDLs functions
     mutable SDL_Window* window = nullptr;
 

@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include "Core/Imgui.hpp"
 #include "Core/Renderer.hpp"
-#include "../JobsPool.hpp"
+#include "Core/JobsPool.hpp"
 
 
 Application::Application(const ApplicationConfig& aConfig)
