@@ -205,7 +205,7 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
         ImGui::TextWrapped("Checkbox below exists to create two seconds delay with std::this_thread::sleep_for "
                            "before adding bullet to main queue. This may be handy for jobsPool testing. "
                            "Note! With that option enabled, bullet initial position won't be under the cursor, "
-                           "because fire time off the bullet is now");
+                           "because the fire time of the bullet is now(), which is past for us one second after.");
 
         uiData.delayFireTask = bulletCreationController->GetDelayTask();
         ImGui::Checkbox("Is fire task delay added", &uiData.delayFireTask);

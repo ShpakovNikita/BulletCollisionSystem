@@ -65,7 +65,7 @@ size_t BulletManager::GetWaitingForFireBulletsCount() const
 {
     std::lock_guard lock(mutex);
     return std::count_if(bulletsPool.begin(), bulletsPool.end(), 
-        [this](const Bullet& bullet) { return bullet.previousUpdateTime > appContext.GetApplicationExecutionTimeMs(); });
+        [this](const Bullet& bullet) { return bullet.fireTime < appContext.GetApplicationExecutionTimeMs(); });
 }
 
 void BulletManager::DrawBullets(float time)
@@ -104,8 +104,8 @@ void BulletManager::UpdateBulletPosition(Bullet& bullet, float deltaTime)
     {
         collided = false;
 
-        Vector2 bulletNewPossiblePosition = bullet.dir * bulletRemainingTracerLength;
-        std::vector<Line> bboxCollidedWalls = gameScene.GetBBoxCollidedWalls({ bullet.dir, bulletNewPossiblePosition });
+        Vector2 bulletNewPossiblePosition = bullet.pos + bullet.dir * bulletRemainingTracerLength;
+        std::vector<Line> bboxCollidedWalls = gameScene.GetBBoxCollidedWalls({ bullet.pos, bulletNewPossiblePosition });
 
         for (const Line& wall : bboxCollidedWalls)
         {
