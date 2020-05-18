@@ -49,6 +49,7 @@ void BulletManager::Fire(
 
 size_t BulletManager::GetBulletsOnSceneCount() const
 {
+    std::lock_guard lock(mutex);
     return firedBullets.size();
 }
 
@@ -60,6 +61,7 @@ size_t BulletManager::GetBulletsInQueueCount() const
 
 void BulletManager::DrawBullets()
 {
+    std::lock_guard lock(mutex);
     for (const Bullet& bullet : firedBullets)
     {
         appContext.renderer->DrawPoint(bullet.pos, 0.02f);
@@ -68,6 +70,7 @@ void BulletManager::DrawBullets()
 
 void BulletManager::UpdateBulletPositions(float deltaTime)
 {
+    std::lock_guard lock(mutex);
     for (Bullet& bullet : firedBullets)
     {
         Vector2 deltaVelocityVector = bullet.dir * bullet.speed * deltaTime;
@@ -107,6 +110,7 @@ void BulletManager::UpdateBulletPositions(float deltaTime)
 
 void BulletManager::ClipOutOfBordersBullets()
 {
+    std::lock_guard lock(mutex);
     constexpr AABBox2 worldBordersBBox = { {-1.0f, -1.0f}, {1.0f, 1.0f} };
     auto clipBulletConditionsCheck = [&worldBordersBBox](const Bullet& bullet) {
         return !Intersection::PointBoxIntersection(bullet.pos, worldBordersBBox);

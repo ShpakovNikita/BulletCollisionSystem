@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include "Core/Imgui.hpp"
 #include "Core/Renderer.hpp"
+#include "../JobsPool.hpp"
 
 
 Application::Application(const ApplicationConfig& aConfig)
@@ -92,12 +93,14 @@ void Application::Init()
 
     appContext.renderer->Init();
     appContext.imgui->Init();
+    appContext.jobsPool->Init();
 
     appContext.applicationInitTime = std::chrono::steady_clock::now();
 }
 
 void Application::Cleanup()
 {
+    appContext.jobsPool->Cleanup();
     appContext.imgui->Cleanup();
     appContext.renderer->Cleanup();
 

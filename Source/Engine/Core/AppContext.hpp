@@ -5,6 +5,7 @@
 struct SDL_Window;
 class Renderer;
 class Imgui;
+class JobsPool;
 
 struct ApplicationConfig
 {
@@ -35,6 +36,7 @@ public:
 
     std::unique_ptr<Renderer> renderer;
     std::unique_ptr<Imgui> imgui;
+    std::unique_ptr<JobsPool> jobsPool;
 
     ApplicationConfig config;
 

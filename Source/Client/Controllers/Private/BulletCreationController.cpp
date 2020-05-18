@@ -3,6 +3,7 @@
 #include "Core/Renderer.hpp"
 #include "Core/AppContext.hpp"
 #include "Utils/Display.hpp"
+#include "Core/JobsPool.hpp"
 
 constexpr float kDefaultBulletLifeTime = 5.0f;
 
@@ -76,5 +77,21 @@ void BulletCreationController::CreateFireTask(
     float time, 
     float lifeTime)
 {
-    bulletManager.Fire(pos, dir, speed, time, lifeTime);
+    appContext.jobsPool->CreateBackgroundJob(
+        [=] {
+        if (delayTask)
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+        bulletManager.Fire(pos, dir, speed, time, lifeTime); });
+}
+
+void BulletCreationController::SetDelayTask(bool aDelayTask)
+{
+    delayTask = aDelayTask;
+}
+
+bool BulletCreationController::GetDelayTask()
+{
+    return delayTask;
 }

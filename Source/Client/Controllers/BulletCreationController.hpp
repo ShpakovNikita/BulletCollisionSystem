@@ -17,8 +17,12 @@ public:
 
     void CreateFireTask(const Vector2& pos, const Vector2& dir, float speed, float time, float lifeTime);
 
+    void SetDelayTask(bool delayTask);
+    bool GetDelayTask();
+
 private: 
     const AppContext& appContext;
     BulletManager& bulletManager;
     std::optional<Line> currentBulletCreateInfo;
+    bool delayTask = false;
 };
