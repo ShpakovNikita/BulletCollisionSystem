@@ -19,7 +19,6 @@ private:
     {
         bool drawCollisionQuadTree = false;
         bool fireInvalidDataErrorShown = false;
-        bool delayFireTask = false;
     } uiData;
 
     void Tick(const std::chrono::microseconds& deltaTime) override;

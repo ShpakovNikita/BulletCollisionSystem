@@ -9,8 +9,8 @@
 
 namespace SBulletManager
 {
-    constexpr Vector3 kBulletStartColor = {0.0f, 1.0f, 0.0f};
-    constexpr Vector3 kBulletEndColor = {1.0f, 0.0f, 0.0f};
+    constexpr Vector3 kBulletStartColor = { 1.0f, 1.0f, 0.0f };
+    constexpr Vector3 kBulletEndColor = { 0.45f, 0.55f, 0.60f };
 }
 
 BulletManager::BulletManager(GameScene& aGameScene, const AppContext& aAppContext)
@@ -20,7 +20,6 @@ BulletManager::BulletManager(GameScene& aGameScene, const AppContext& aAppContex
 
 BulletManager::~BulletManager()
 {
-    std::lock_guard lock(mutex);
     bulletsPool.clear();
 }
 
@@ -97,6 +96,14 @@ void BulletManager::UpdateBulletPositions(float time)
 
 void BulletManager::UpdateBulletPosition(Bullet& bullet, float deltaTime)
 {
+    struct BulletCollisionData
+    {
+        float distanceToCollisionPoint;
+        Vector2 collisionPoint;
+        Vector2 wallStart;
+        Vector2 wallEnd;
+    };
+
     float bulletRemainingTracerLength = bullet.speed * deltaTime;
 
     bool collided = true;
@@ -107,35 +114,58 @@ void BulletManager::UpdateBulletPosition(Bullet& bullet, float deltaTime)
         Vector2 bulletNewPossiblePosition = bullet.pos + bullet.dir * bulletRemainingTracerLength;
         std::vector<Line> bboxCollidedWalls = gameScene.GetBBoxCollidedWalls({ bullet.pos, bulletNewPossiblePosition });
 
+        // We may have a case, where two walls close to each other, and we intersect both of them in the same tick.
+        // To provide correctness, we have to collide with the closest wall.
+        std::vector<BulletCollisionData> collisionPointsData;
+        collisionPointsData.reserve(bboxCollidedWalls.size());
+
         for (const Line& wall : bboxCollidedWalls)
         {
             const Vector2& wallStart = std::get<0>(wall);
             const Vector2& wallEnd = std::get<1>(wall);
-            std::optional<Vector2> collidedPoint = Intersection::SegmentSegmentIntersection(
+            std::optional<Vector2> collisionPoint = Intersection::SegmentSegmentIntersection(
                 wallStart, wallEnd, bullet.pos, bulletNewPossiblePosition);
 
-            if (collidedPoint)
+            if (collisionPoint)
             {
-                float bulletHitPathLength = (collidedPoint.value() - bullet.pos).Length();
-                bulletRemainingTracerLength -= bulletHitPathLength;
-
-                Vector2 wallVector = wallEnd - wallStart;
-                Vector2 wallNormal = MathHelpers::GetPerpendicular(wallVector).Normalized();
-
-                // The idea is to get our normal always pointing towards our bullet hit
-                MathHelpers::eOrientation orientation = MathHelpers::GetOrientation(wallStart, wallEnd, bullet.pos);
-                wallNormal = orientation == MathHelpers::eOrientation::kCounterclockwise ? wallNormal : -wallNormal;
-
-                Vector2 newDirection = MathHelpers::Reflect(-bullet.dir, wallNormal);
-
-                bullet.dir = newDirection.Normalized();
-                bullet.pos = collidedPoint.value();
-
-                gameScene.RemoveWall({ wallStart, wallEnd });
-
-                collided = true;
-                break;
+                BulletCollisionData collisionData;
+                collisionData.collisionPoint = collisionPoint.value();
+                collisionData.distanceToCollisionPoint = (collisionPoint.value() - bullet.pos).Length();
+                collisionData.wallStart = wallStart;
+                collisionData.wallEnd = wallEnd;
+                collisionPointsData.push_back(std::move(collisionData));
             }
+        }
+
+        if (!collisionPointsData.empty())
+        {
+            const auto minDistancePredicate = [](const BulletCollisionData& d1, const BulletCollisionData& d2) 
+            { 
+                return d1.distanceToCollisionPoint < d2.distanceToCollisionPoint;
+            };
+
+            const BulletCollisionData collisionData = *std::min_element(
+                collisionPointsData.begin(), collisionPointsData.end(), minDistancePredicate);
+
+            bulletRemainingTracerLength -= collisionData.distanceToCollisionPoint;
+
+            Vector2 wallVector = collisionData.wallEnd - collisionData.wallStart;
+            Vector2 wallNormal = MathHelpers::GetPerpendicular(wallVector).Normalized();
+
+            // The main idea behind this is to get our normal always pointing towards our bullet hit
+            MathHelpers::eOrientation orientation = MathHelpers::GetOrientation(
+                collisionData.wallStart, collisionData.wallEnd, bullet.pos);
+            wallNormal = orientation == MathHelpers::eOrientation::kCounterclockwise ? wallNormal : -wallNormal;
+
+            Vector2 newDirection = MathHelpers::Reflect(-bullet.dir, wallNormal);
+
+            bullet.dir = newDirection.Normalized();
+            bullet.pos = collisionData.collisionPoint;
+
+            gameScene.RemoveWall({ collisionData.wallStart, collisionData.wallEnd });
+
+            collided = true;
+            break;
         }
     }
 
