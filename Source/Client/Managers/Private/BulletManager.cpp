@@ -72,7 +72,7 @@ void BulletManager::DrawBullets(float time)
 {
     for (const Bullet& bullet : bulletsPool)
     {
-        if (time > bullet.fireTime && bullet.fireTime + bullet.lifeTime > time)
+        if (time >= bullet.fireTime)
         {
             float lerpParam = (time - bullet.fireTime) / bullet.lifeTime;
             appContext.renderer->DrawPoint(bullet.pos, 0.02f,
