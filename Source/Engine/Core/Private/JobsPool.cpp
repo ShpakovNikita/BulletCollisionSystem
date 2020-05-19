@@ -36,6 +36,16 @@ void JobsPool::Cleanup()
     backgroundThreads.clear();
 }
 
+void JobsPool::EndFrame()
+{
+    // Some synchronization may be added here for frame reliable jobs
+}
+
+void JobsPool::StartFrame()
+{
+    // Some synchronization may be added here for frame reliable jobs
+}
+
 void JobsPool::ThreadBackgroundFunc()
 {
     bool breakThreadLoop = false;

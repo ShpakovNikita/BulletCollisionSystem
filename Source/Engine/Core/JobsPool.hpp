@@ -1,20 +1,24 @@
 #pragma once
+
 #include <vector>
 #include <functional>
 #include <mutex>
-#include <atomic>
+#include "IEngineSubsystem.hpp"
 
 namespace std { class thread; }
 
 class JobsPool
+    : public IEngineSubsystem
 {
 public:
     void CreateBackgroundJob(const std::function<void()>& jobFunction);
 
-private:
-    void Init();
-    void Cleanup();
+    void Init() override;
+    void Cleanup() override;
+    void EndFrame() override;
+    void StartFrame() override;
 
+private:
     void ThreadBackgroundFunc();
 
     std::vector<std::thread> backgroundThreads;

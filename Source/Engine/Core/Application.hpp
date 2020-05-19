@@ -1,8 +1,10 @@
 #pragma once
-#include "SDL_events.h"
 #include <chrono>
+#include <vector>
 #include "AppContext.hpp"
+#include "SDL_events.h"
 
+class IEngineSubsystem;
 
 class Application
 {
@@ -21,4 +23,5 @@ protected:
     virtual void Cleanup();
 
     AppContext appContext;
+    std::vector<IEngineSubsystem*> engineSubsystems = {};
 };

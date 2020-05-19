@@ -16,7 +16,7 @@ public:
     void Fire(const Vector2& pos, const Vector2& dir, float speed, float time, float lifeTime);
 
     size_t GetBulletsOnSceneCount() const;
-    size_t GetWaitingForFireBulletsCount() const;
+    size_t GetBulletsInQueueCount() const;
 
 private:
     struct Bullet
@@ -39,6 +39,7 @@ private:
     mutable std::mutex mutex;
 
     std::vector<Bullet> bulletsPool;
+    uint32_t bulletsInQueueCount = 0;
 
     GameScene& gameScene;
 

@@ -2,29 +2,45 @@
 #include "imgui.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
-#include "Math\Vector2.hpp"
+#include "Math/Vector2.hpp"
 #include <vector>
-#include "Core\Renderer.hpp"
+#include "Core/Renderer.hpp"
 #include <chrono>
 #include <optional>
-#include "Utils\Intersection.hpp"
+#include "Utils/Intersection.hpp"
 #include "SDL_mouse.h"
-#include "Math\DataStructures\Quadtree.hpp"
-#include "Controllers\WallCreationController.hpp"
-#include "Controllers\BulletCreationController.hpp"
+#include "Math/DataStructures/Quadtree.hpp"
+#include "Controllers/WallCreationController.hpp"
+#include "Controllers/BulletCreationController.hpp"
 #include "GameScene.hpp"
-#include "Managers\BulletManager.hpp"
+#include "Managers/BulletManager.hpp"
+
+namespace SApplicationImpl
+{
+    const std::vector<Line> kApplicationStartupWalls = {
+        { { -0.98f, 0.98f }, { 0.98f, 0.98f } },
+        { { 0.98f, 0.98f }, { 0.98f, -0.98f } },
+        { { 0.98f, -0.98f }, { -0.98f, -0.98f } },
+        { { -0.98f, -0.98f }, { -0.98f, 0.98f } },
+    };
+
+    float ChronoMicrosecondsToFloatSeconds(const std::chrono::microseconds& deltaTime)
+    {
+        return deltaTime.count() / (1000.0f * 1000.0f);
+    }
+}
 
 void ApplicationImpl::Tick(const std::chrono::microseconds& deltaTime)
 {
     Application::Tick(deltaTime);
 
-    float deltaTimeInSeconds = deltaTime.count() / (1000.0f * 1000.0f);
+    // This is very uncommon for me to have an update argument as a global time, that's why only test
+    // task class have current global time as an argument
     float currentTimeInSeconds = appContext.GetApplicationExecutionTimeSec();
-
     bulletManager->Update(currentTimeInSeconds);
-    gameScene->Update(currentTimeInSeconds);
 
+    float deltaTimeInSeconds = SApplicationImpl::ChronoMicrosecondsToFloatSeconds(deltaTime);
+    gameScene->Update(deltaTimeInSeconds);
     DrawUI(deltaTimeInSeconds);
 
     wallCreationController->DrawTrajectory();
@@ -68,14 +84,7 @@ void ApplicationImpl::Init()
     gameScene = std::make_unique<GameScene>(appContext);
     bulletManager = std::make_unique<BulletManager>(*gameScene, appContext);
 
-    std::vector<Line> walls = {
-        { { -0.98f, 0.98f }, { 0.98f, 0.98f } },
-        { { 0.98f, 0.98f }, { 0.98f, -0.98f } },
-        { { 0.98f, -0.98f }, { -0.98f, -0.98f } },
-        { { -0.98f, -0.98f }, { -0.98f, 0.98f } },
-    };
-
-    for (const Line& wall : walls)
+    for (const Line& wall : SApplicationImpl::kApplicationStartupWalls)
     {
         gameScene->AddWall(wall);
     }
@@ -92,7 +101,7 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
         static_cast<float>(appContext.config.windowWidth - appContext.config.viewportWidth),
         static_cast<float>(appContext.config.windowHeight) });
 
-    const float currentTimeInSeconds = appContext.GetApplicationExecutionTime().count() / (1000.0f * 1000.0f);
+    const float currentTimeInSeconds = appContext.GetApplicationExecutionTimeSec();
     const float frameTimeMs = frameTimeSec * 1000.0f;
 
     {
@@ -112,7 +121,7 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
     {
         const ImVec4 textColor = { 0.0f, 1.0f, 0.0f, 1.0f };
         char label[256];
-        snprintf(label, sizeof(label), "Current number of bullets in queue: %zu ", bulletManager->GetWaitingForFireBulletsCount());
+        snprintf(label, sizeof(label), "Current number of bullets in queue: %zu ", bulletManager->GetBulletsInQueueCount());
         ImGui::TextColored(textColor, label);
     }
 
@@ -144,12 +153,12 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
         const ImVec4 textColor = { 0.0f, 1.0f, 0.0f, 1.0f };
         ImGui::TextColored(textColor, "HERE IS A LITTLE GUIDE:");
 
-        ImGui::TextWrapped("1. You can create bullets by clicking in the left mouse button, dragging it int desired"
-                           "direction, and releasing mouse button. Bullet position will be the initial click position,"
-                           "direction will be shown as line, and speed will be counted as this line's length.");
+        ImGui::TextWrapped("1. You can create bullets by clicking in the left mouse button, dragging it into the desired "
+                           "direction, and releasing a mouse button. Bullet position will be the initial click position, "
+                           "the direction will be shown as a line, and speed will be counted as this line's length.");
         ImGui::TextWrapped("2. You can create bullets by passing data in the UI below and clicking the Fire button.");
-        ImGui::TextWrapped("3. You can create walls similarly to the first bullet creation option, but instead of lest"
-                           "mouse button you should use right one.");
+        ImGui::TextWrapped("3. You can create walls similar to the first bullet creation option, but instead of the left "
+                           "mouse button, you should use the right one.");
         ImGui::TextWrapped("Notes: Also, below you can find some other interesting debug stuff to click on.");
     }
 
@@ -189,7 +198,7 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
         if (uiData.fireInvalidDataErrorShown)
         {
             const ImVec4 textColor = { 1.0f, 0.0f, 0.0f, 1.0f };
-            ImGui::TextColored(textColor, "You passed wrong data! Something crucial is invalid");
+            ImGui::TextColored(textColor, "You've passed the wrong data! Something crucial is invalid");
         }
     }
 

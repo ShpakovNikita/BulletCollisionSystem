@@ -33,6 +33,7 @@ void Application::Run()
         std::chrono::time_point<std::chrono::steady_clock> newCurrentTime = std::chrono::steady_clock::now();
         frameDelta = std::chrono::duration_cast<std::chrono::microseconds>(newCurrentTime - currentTime);
 
+        // Breakpoint case
         if (frameDelta >= std::chrono::seconds(1))
         {
             frameDelta = std::clamp(frameDelta, std::chrono::microseconds(0), expectedFrameTime);
@@ -48,15 +49,13 @@ void Application::Run()
             InputEvent(event);
         }
 
-        appContext.renderer->StartFrame();
-        appContext.imgui->StartFrame();
+        std::for_each(engineSubsystems.begin(), engineSubsystems.end(), [](IEngineSubsystem* subsystem) { subsystem->StartFrame(); });
 
         Tick(frameDelta);
 
         appContext.renderer->DrawBatches();
 
-        appContext.imgui->EndFrame();
-        appContext.renderer->EndFrame();
+        std::for_each(engineSubsystems.rbegin(), engineSubsystems.rend(), [](IEngineSubsystem* subsystem) { subsystem->EndFrame(); });
 
         // Because of force enabled VSync we don't have to sleep here
     }
@@ -91,18 +90,19 @@ void Application::Init()
     appContext.window = SDL_CreateWindow("Dear ImGui SDL2+OpenGL3 example", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
         appContext.config.windowWidth, appContext.config.windowHeight, window_flags);
 
-    appContext.renderer->Init();
-    appContext.imgui->Init();
-    appContext.jobsPool->Init();
+    // Here we define initialization, cleanup, frame start/end call order for each subsystem
+    engineSubsystems.push_back(appContext.renderer.get());
+    engineSubsystems.push_back(appContext.imgui.get());
+    engineSubsystems.push_back(appContext.jobsPool.get());
+
+    std::for_each(engineSubsystems.begin(), engineSubsystems.end(), [](IEngineSubsystem* subsystem) { subsystem->Init(); });
 
     appContext.applicationInitTime = std::chrono::steady_clock::now();
 }
 
 void Application::Cleanup()
 {
-    appContext.jobsPool->Cleanup();
-    appContext.imgui->Cleanup();
-    appContext.renderer->Cleanup();
+    std::for_each(engineSubsystems.rbegin(), engineSubsystems.rend(), [](IEngineSubsystem* subsystem) { subsystem->Cleanup(); });
 
     SDL_DestroyWindow(appContext.window);
     SDL_Quit();

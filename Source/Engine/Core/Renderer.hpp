@@ -1,17 +1,23 @@
 #pragma once
 #include <string>
-#include <stdint.h>
 #include <future>
 #include <vector>
 #include "Math/Vector3.hpp"
+#include "IEngineSubsystem.hpp"
 
 struct Vector2;
 class AppContext;
 
 class Renderer
+    : public IEngineSubsystem
 {
 public:
     Renderer(const AppContext& appContext);
+
+    void Init() override;
+    void Cleanup() override;
+    void EndFrame() override;
+    void StartFrame() override;
 
     void DrawLines(const std::vector<Vector2>& linePoints, const Vector3& color = Vector3::kGreen, bool drawAsStrip = false) const;
     void DrawLine(const Vector2& startPoint, const Vector2& endPoint, const Vector3& color = Vector3::kGreen) const;
@@ -38,10 +44,6 @@ private:
 
     static void BindBuffersForBatch(BatchInfo& batchInfo);
 
-    void Init();
-    void Cleanup();
-    void EndFrame();
-    void StartFrame();
     void DrawBatches();
     void CleanupBatches(bool cleanupPersistentBatches);
 

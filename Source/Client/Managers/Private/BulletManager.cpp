@@ -51,20 +51,21 @@ void BulletManager::Fire(
     bullet.lifeTime = lifeTime;
     bullet.previousUpdateTime = time;
 
+    ++bulletsInQueueCount;
+
     bulletsPool.push_back(std::move(bullet));
 }
 
 size_t BulletManager::GetBulletsOnSceneCount() const
 {
     std::lock_guard lock(mutex);
-    return bulletsPool.size();
+    return bulletsPool.size() - bulletsInQueueCount;
 }
 
-size_t BulletManager::GetWaitingForFireBulletsCount() const
+size_t BulletManager::GetBulletsInQueueCount() const
 {
     std::lock_guard lock(mutex);
-    return std::count_if(bulletsPool.begin(), bulletsPool.end(), 
-        [this](const Bullet& bullet) { return bullet.fireTime < appContext.GetApplicationExecutionTimeMs(); });
+    return bulletsInQueueCount;
 }
 
 void BulletManager::DrawBullets(float time)
@@ -88,6 +89,11 @@ void BulletManager::UpdateBulletPositions(float time)
 
         if (deltaTime > 0.0f)
         {
+            if (bullet.previousUpdateTime == bullet.fireTime)
+            {
+                --bulletsInQueueCount;
+            }
+
             UpdateBulletPosition(bullet, deltaTime);
             bullet.previousUpdateTime = time;
         }

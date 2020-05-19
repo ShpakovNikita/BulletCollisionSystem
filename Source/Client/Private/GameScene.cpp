@@ -1,9 +1,9 @@
 #include "GameScene.hpp"
-#include "Core\Renderer.hpp"
+#include "Core/Renderer.hpp"
 #include <utility>
 #include <assert.h>
-#include "Math\MathHelpers.hpp"
-#include "Core\AppContext.hpp"
+#include "Math/MathHelpers.hpp"
+#include "Core/AppContext.hpp"
 
 GameScene::GameScene(const AppContext& aAppContext)
     : quadtree(AABBox2{ {-1.0f, -1.0f}, {1.0f, 1.0f} }, [](const Line& line)
