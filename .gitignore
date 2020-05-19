@@ -375,3 +375,13 @@ FodyWeavers.xsd
 # Project files ignored because of CMake generation
 *.vcxproj*
 *.sln
+
+# Imgui
+imgui.ini
+
+# Build
+Release/
+Debug/
+
+# Jetbrains
+.idea/
