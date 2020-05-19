@@ -16,8 +16,8 @@ std::string File::ReadFile(const std::string& filePath)
     std::string out;
     std::string buf = std::string(readSize, '\0');
     while (stream.read(&buf[0], readSize)) {
-        out.append(buf, 0, stream.gcount());
+        out.append(buf, 0, static_cast<uint32_t>(stream.gcount()));
     }
-    out.append(buf, 0, stream.gcount());
+    out.append(buf, 0, static_cast<uint32_t>(stream.gcount()));
     return out;
 }
