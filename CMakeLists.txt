@@ -7,6 +7,7 @@ project(${TARGET_NAME})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Cmake")
 set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/Bin")
 set(TASK_SOURCE_PATH "${CMAKE_SOURCE_DIR}/Source")
+set(SHADERS_DIR "${TASK_SOURCE_PATH}/Engine/Shaders")
 
 include_directories("External")
 include_directories("External/imgui")
@@ -72,6 +73,7 @@ file(GLOB_RECURSE HEADER_FILES "${TASK_SOURCE_PATH}/*.hpp")
 
 add_definitions(-DASSETS_DIR=\"${CMAKE_SOURCE_DIR}/Assets/\")
 add_definitions(-DENGINE_SHADERS_DIR=\"${CMAKE_SOURCE_DIR}/Source/Engine/Shaders/\")
+add_definitions(-DRESOURCE_SHADERS_DIR=\"./Shaders/\")
 
 add_executable(${TARGET_NAME} 
     ${SOURCE_FILES} 
@@ -105,3 +107,9 @@ if (MSVC)
             ${DLLS}
             $<TARGET_FILE_DIR:${TARGET_NAME}>)
 endif()
+
+add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${SHADERS_DIR}
+        "$<TARGET_FILE_DIR:${TARGET_NAME}>/Shaders/")
+        

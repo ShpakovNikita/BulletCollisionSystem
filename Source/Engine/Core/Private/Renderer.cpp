@@ -107,8 +107,8 @@ void Renderer::BindBuffersForBatch(BatchInfo& batchInfo)
 
 void Renderer::Init()
 {
-    std::string vertexShaderPath = std::string(ENGINE_SHADERS_DIR) + std::string("Solid.vert");
-    std::string fragmentShaderPath = std::string(ENGINE_SHADERS_DIR) + std::string("Solid.frag");
+    std::string vertexShaderPath = appContext.GetShadersDir() + std::string("Solid.vert");
+    std::string fragmentShaderPath = appContext.GetShadersDir() + std::string("Solid.frag");
 
     std::future<std::string> vertexShaderSource = std::async(std::launch::async, &File::ReadFile, std::ref(vertexShaderPath));
     std::future<std::string> fragmentShaderSource = std::async(std::launch::async, &File::ReadFile, std::ref(fragmentShaderPath));

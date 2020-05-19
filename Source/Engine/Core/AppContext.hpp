@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include <memory>
+#include <string>
 
 struct SDL_Window;
 class Renderer;
@@ -34,6 +35,8 @@ public:
     const float GetApplicationExecutionTimeSec() const;
     const float GetApplicationExecutionTimeMs() const;
 
+    const std::string& GetShadersDir() const;
+
     // window lifetime managed by SDLs functions
     mutable SDL_Window* window = nullptr;
 
@@ -49,4 +52,6 @@ private:
     bool exit = false;
     std::chrono::microseconds currentExecutionTime = {};
     std::chrono::time_point<std::chrono::steady_clock> applicationInitTime = {};
+
+    std::string shadersDir;
 };

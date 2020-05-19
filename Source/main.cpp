@@ -5,10 +5,9 @@
 
 int main(int, char**)
 {
-    ApplicationImpl app;
-
     try
     {
+        ApplicationImpl app;
         app.Run();
     }
     catch (const std::runtime_error& e)
