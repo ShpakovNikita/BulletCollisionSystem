@@ -17,6 +17,7 @@
 #include <vector>
 #include <chrono>
 #include <optional>
+#include "Core/JobsPool.hpp"
 
 namespace SApplicationImpl
 {
@@ -118,6 +119,13 @@ void ApplicationImpl::DrawUI(float frameTimeSec)
         const ImVec4 textColor = { 1.0f, 1.0f, 0.0f, 1.0f };
         char label[256];
         snprintf(label, sizeof(label), "Current global time: %f sec", currentTimeInSeconds);
+        ImGui::TextColored(textColor, label);
+    }  
+    
+    {
+        const ImVec4 textColor = { 0.7f, 0.7f, 1.0f, 1.0f };
+        char label[256];
+        snprintf(label, sizeof(label), "Background threads count: %zu", appContext.jobsPool->GetBackgroundThreadsCount());
         ImGui::TextColored(textColor, label);
     }
 

@@ -19,6 +19,8 @@ public:
     void EndFrame() override;
     void StartFrame() override;
 
+    size_t GetBackgroundThreadsCount();
+
 private:
     void ThreadBackgroundFunc();
 

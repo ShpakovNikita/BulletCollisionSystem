@@ -42,7 +42,7 @@ bool Intersection::BoxBoxIntersection(const AABBox2& bbox1, const AABBox2& bbox2
     return true;
 }
 
-bool Intersection::PointBoxIntersection(const Vector2& point, const AABBox2& bbox)
+bool Intersection::IsPointInsideBox(const Vector2& point, const AABBox2& bbox)
 {
     return point.x >= bbox.min.x && point.x <= bbox.max.x && point.y >= bbox.min.y && point.y <= bbox.max.y;
 }

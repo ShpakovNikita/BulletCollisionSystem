@@ -53,21 +53,21 @@ void BulletManager::Fire(
     bullet.lifeTime = lifeTime;
     bullet.previousUpdateTime = time;
 
-    ++bulletsInQueueCount;
-
     bulletsPool.push_back(std::move(bullet));
 }
 
 size_t BulletManager::GetBulletsOnSceneCount() const
 {
     std::lock_guard lock(mutex);
-    return bulletsPool.size() - bulletsInQueueCount;
+    return std::count_if(bulletsPool.begin(), bulletsPool.end(),
+        [](const Bullet& bullet) { return bullet.previousUpdateTime > bullet.fireTime; });
 }
 
 size_t BulletManager::GetBulletsInQueueCount() const
 {
     std::lock_guard lock(mutex);
-    return bulletsInQueueCount;
+    return std::count_if(bulletsPool.begin(), bulletsPool.end(),
+        [](const Bullet& bullet) { return bullet.previousUpdateTime <= bullet.fireTime; });
 }
 
 void BulletManager::DrawBullets(float time)
@@ -91,11 +91,6 @@ void BulletManager::UpdateBulletPositions(float time)
 
         if (deltaTime > 0.0f)
         {
-            if (bullet.previousUpdateTime == bullet.fireTime)
-            {
-                --bulletsInQueueCount;
-            }
-
             UpdateBulletPosition(bullet, deltaTime);
             bullet.previousUpdateTime = time;
         }
@@ -184,7 +179,7 @@ void BulletManager::ClipOutOfBordersBullets()
 {
     constexpr AABBox2 worldBordersBBox = { {-1.0f, -1.0f}, {1.0f, 1.0f} };
     auto removeBulletConditionsCheck = [&worldBordersBBox](const Bullet& bullet) {
-        return !Intersection::PointBoxIntersection(bullet.pos, worldBordersBBox);
+        return !Intersection::IsPointInsideBox(bullet.pos, worldBordersBBox);
     };
 
     bulletsPool.erase(std::remove_if(bulletsPool.begin(), bulletsPool.end(), removeBulletConditionsCheck), bulletsPool.end());

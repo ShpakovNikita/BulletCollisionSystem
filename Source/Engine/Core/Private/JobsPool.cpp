@@ -16,7 +16,7 @@ void JobsPool::CreateBackgroundJob(const std::function<void()>& jobFunction)
 void JobsPool::Init()
 {
     // This function can return zero even if there is available threads, 
-    // all the code here do not covering all platform cases
+    // all the code here do not cover all platform cases
     uint32_t maxThreadsCount = std::thread::hardware_concurrency();
     for (uint32_t i = 0; i < maxThreadsCount; ++i)
     {
@@ -27,7 +27,19 @@ void JobsPool::Init()
 void JobsPool::Cleanup()
 {
     terminateThreads = true;
-    conditionVariable.notify_all();
+
+    // wait for all jobs to finish
+    bool jobsFinished = false;
+    while (!jobsFinished)
+    {
+        conditionVariable.notify_all();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            jobsFinished = jobsQueue.empty();
+        }
+    }
 
     for (std::thread& backgroundThread : backgroundThreads)
     {
@@ -45,6 +57,11 @@ void JobsPool::EndFrame()
 void JobsPool::StartFrame()
 {
     // Some synchronization may be added here for frame reliable jobs
+}
+
+size_t JobsPool::GetBackgroundThreadsCount()
+{
+    return backgroundThreads.size();
 }
 
 void JobsPool::ThreadBackgroundFunc()

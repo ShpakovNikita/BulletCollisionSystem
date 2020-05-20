@@ -42,8 +42,6 @@ private:
     mutable std::mutex mutex;
 
     std::vector<Bullet> bulletsPool;
-    uint32_t bulletsInQueueCount = 0;
-
     GameScene& gameScene;
 
     const AppContext& appContext;
