@@ -1,8 +1,9 @@
 #pragma once
 
+#include "Math/Line.hpp"
+#include "Math/DataStructures/Quadtree.hpp"
+
 #include <vector>
-#include "Math\Line.hpp"
-#include "Math\DataStructures\Quadtree.hpp"
 
 class AppContext;
 

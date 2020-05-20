@@ -29,6 +29,11 @@ file(GLOB GL3W_SOURCE_FILES LIST_DIRECTORIES false
     "${CMAKE_SOURCE_DIR}/External/gl3w/src/*.c"
 )
 
+if(MSVC)
+    # better to compile gl3w as library, but this solution for warning silencing is ok
+    set_source_files_properties(${GL3W_SOURCE_FILES} PROPERTIES COMPILE_FLAGS /wd4152)
+endif()
+
 if(WIN32)
     set(TASK_LIBS_PATH ${CMAKE_SOURCE_DIR}/Libs/Win32)
 else(WIN32)

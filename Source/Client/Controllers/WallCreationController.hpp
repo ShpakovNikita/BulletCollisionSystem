@@ -1,6 +1,8 @@
 #pragma once
+
 #include "SDL_events.h"
-#include "Math\Line.hpp"
+#include "Math/Line.hpp"
+
 #include <optional>
 
 class GameScene;

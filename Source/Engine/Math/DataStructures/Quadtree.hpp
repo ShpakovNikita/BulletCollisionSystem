@@ -1,8 +1,10 @@
 #pragma once
-#include <vector>
-#include <array>
+
 #include "Math/AABBox2.hpp"
 #include "Core/Renderer.hpp"
+
+#include <vector>
+#include <array>
 
 template<typename T>
 class Quadtree

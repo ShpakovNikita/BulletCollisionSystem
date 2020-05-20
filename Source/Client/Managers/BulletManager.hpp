@@ -1,7 +1,10 @@
-#include <mutex>
-#include <vector>
+#pragma once
+
 #include "Math\Vector2.hpp"
 #include "Math\Vector3.hpp"
+
+#include <mutex>
+#include <vector>
 
 class GameScene;
 class AppContext;

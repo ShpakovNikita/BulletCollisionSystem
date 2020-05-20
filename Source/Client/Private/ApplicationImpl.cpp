@@ -1,19 +1,22 @@
 #include "ApplicationImpl.hpp"
+
 #include "imgui.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
-#include "Math/Vector2.hpp"
-#include <vector>
-#include "Core/Renderer.hpp"
-#include <chrono>
-#include <optional>
-#include "Utils/Intersection.hpp"
 #include "SDL_mouse.h"
+
+#include "Math/Vector2.hpp"
+#include "Core/Renderer.hpp"
+#include "Utils/Intersection.hpp"
 #include "Math/DataStructures/Quadtree.hpp"
 #include "Controllers/WallCreationController.hpp"
 #include "Controllers/BulletCreationController.hpp"
 #include "GameScene.hpp"
 #include "Managers/BulletManager.hpp"
+
+#include <vector>
+#include <chrono>
+#include <optional>
 
 namespace SApplicationImpl
 {

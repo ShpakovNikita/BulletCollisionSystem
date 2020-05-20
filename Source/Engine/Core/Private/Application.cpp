@@ -1,11 +1,7 @@
 #include "Core/Application.hpp"
 
-#include "imgui.h"
-#include "examples/imgui_impl_sdl.h"
-#include "examples/imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <SDL.h>
-#include <GL/gl3w.h>
 #include <string>
 #include <stdexcept>
 #include "Core/Imgui.hpp"

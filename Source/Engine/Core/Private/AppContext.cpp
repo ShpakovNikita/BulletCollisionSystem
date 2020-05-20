@@ -1,7 +1,9 @@
 #include "Core/AppContext.hpp"
+
 #include "Core/Renderer.hpp"
 #include "Core/Imgui.hpp"
 #include "Core/JobsPool.hpp"
+
 #include <filesystem>
 #include <stdexcept>
 

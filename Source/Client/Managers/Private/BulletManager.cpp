@@ -1,11 +1,13 @@
 #include "Managers/BulletManager.hpp"
+
 #include "GameScene.hpp"
 #include "Core/Renderer.hpp"
-#include <assert.h>
 #include "Utils/Intersection.hpp"
 #include "Math/MathHelpers.hpp"
 #include "Math/AABBox2.hpp"
 #include "Core/AppContext.hpp"
+
+#include <assert.h>
 
 namespace SBulletManager
 {

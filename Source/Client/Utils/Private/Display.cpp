@@ -1,4 +1,5 @@
 #include "Utils/Display.hpp"
+
 #include "Math/Vector2.hpp"
 
 namespace SDisplay

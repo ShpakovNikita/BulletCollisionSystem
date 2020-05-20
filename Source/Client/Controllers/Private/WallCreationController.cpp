@@ -1,4 +1,5 @@
 #include "Controllers/WallCreationController.hpp"
+
 #include "GameScene.hpp"
 #include "Core/Renderer.hpp"
 #include "Core/AppContext.hpp"

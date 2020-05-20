@@ -1,13 +1,15 @@
 #include "Core/Renderer.hpp"
-#include "SDL_video.h"
+
 #include "GL/gl3w.h"
-#include <stdexcept>
-#include <iostream>
+#include "SDL_video.h"
+
 #include "Utils/File.hpp"
-#include <future>
-#include <thread>
 #include "Math/Vector2.hpp"
 #include "Core/AppContext.hpp"
+
+#include <stdexcept>
+#include <iostream>
+#include <thread>
 
 Renderer::Renderer(const AppContext& aAppContext)
     : appContext(aAppContext)
@@ -240,4 +242,3 @@ uint32_t Renderer::CompileShader(const std::string& shaderSource, uint32_t shade
 
     return shader;
 }
-

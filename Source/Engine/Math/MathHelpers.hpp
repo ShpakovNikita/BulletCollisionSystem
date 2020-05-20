@@ -1,4 +1,5 @@
 #pragma once
+
 #include <limits>
 
 struct Vector2;

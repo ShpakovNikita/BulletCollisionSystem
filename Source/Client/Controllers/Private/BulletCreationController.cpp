@@ -1,4 +1,5 @@
 #include "Controllers/BulletCreationController.hpp"
+
 #include "Managers/BulletManager.hpp"
 #include "Core/Renderer.hpp"
 #include "Core/AppContext.hpp"

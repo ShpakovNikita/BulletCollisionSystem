@@ -1,6 +1,7 @@
 #pragma once
+
 #include <assert.h>
-#include <valarray>
+#include <cmath>
 
 struct Vector2
 {

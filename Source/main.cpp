@@ -1,7 +1,7 @@
-#include <stdlib.h>
+#include "ApplicationImpl.hpp"
+
 #include <stdexcept>
 #include <iostream>
-#include "ApplicationImpl.hpp"
 
 int main(int, char**)
 {
